@@ -20,6 +20,7 @@ namespace KindredLogistics.Services
             public bool SortStash { get; set; }
             public bool CraftPull { get; set; }
             public bool AutoStashMissions { get; set; }
+            public bool Conveyor { get; set; }
         }
 
         Dictionary<ulong, PlayerSettings> playerSettings = [];
@@ -66,7 +67,7 @@ namespace KindredLogistics.Services
             return settings.SortStash;
         }
 
-        public bool GetCraftPull(ulong playerId)
+        public bool IsCraftPullEnabled(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return false;
@@ -83,7 +84,7 @@ namespace KindredLogistics.Services
             return settings.CraftPull;
         }
 
-        public bool GetAutoStashMissions(ulong playerId)
+        public bool IsAutoStashMissionsEnabled(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return false;
@@ -98,6 +99,23 @@ namespace KindredLogistics.Services
             playerSettings[playerId] = settings;
             SaveSettings();
             return settings.AutoStashMissions;
+        }
+
+        public bool IsConveyorEnabled(ulong playerId)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                return false;
+            return settings.Conveyor;
+        }
+
+        public bool ToggleConveyor(ulong playerId)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                settings = new PlayerSettings();
+            settings.Conveyor = !settings.Conveyor;
+            playerSettings[playerId] = settings;
+            SaveSettings();
+            return settings.Conveyor;
         }
 
         public PlayerSettings GetSettings(ulong playerId)

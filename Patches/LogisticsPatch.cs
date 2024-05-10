@@ -33,9 +33,12 @@ public static class UpdateRefiningSystemPatch
         {
             foreach (var station in stations)
             {
-                if (!Core.EntityManager.Exists(station) || !station.Has<Refinementstation>() || !station.Read<NameableInteractable>().Name.ToString().ToLower().Contains("receiver")) continue;
-
-                var refinementStation = station.Read<Refinementstation>();
+                if (!Core.EntityManager.Exists(station) ||
+                    !station.Has<Refinementstation>() ||
+                    !station.Read<NameableInteractable>().Name.ToString().ToLower().Contains("receiver") ||
+                    !station.Has<UserOwner>() ||
+                    !Core.PlayerSettings.IsConveyorEnabled(station.Read<UserOwner>().Owner.GetEntityOnServer().Read<User>().PlatformId))
+                    continue;
 
                 var recipesBuffer = station.ReadBuffer<RefinementstationRecipesBuffer>();
                 foreach (var recipe in recipesBuffer)
@@ -114,7 +117,7 @@ public static class ServantMissionUpdateSystemPatch
                 {
                     var owner = mission.MissionOwner.Read<EntityOwner>().Owner;
                     var steamId = owner.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
-                    if (!Core.PlayerSettings.GetAutoStashMissions(steamId)) continue;
+                    if (!Core.PlayerSettings.IsAutoStashMissionsEnabled(steamId)) continue;
                         
                     Utilities.StashServantInventory(mission.MissionOwner);
                 }

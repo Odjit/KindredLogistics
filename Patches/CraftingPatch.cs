@@ -15,7 +15,6 @@ public class CraftingPatch
     {
         public static void Prefix(StopCraftingSystem __instance)
         {
-            Core.Log.LogInfo("StopCraftingSystem Prefix...");
             var entities = __instance._EventQuery.ToEntityArray(Allocator.Temp);
             try
             {
@@ -27,11 +26,7 @@ public class CraftingPatch
                         var fromCharacter = entity.Read<FromCharacter>();
                         ulong steamId = fromCharacter.User.Read<User>().PlatformId;
 
-
-                        Core.Log.LogInfo($"StopCraftingSystem for {fromCharacter.Character.Read<PlayerCharacter>().Name}");
-
-                        if (!Core.PlayerSettings.GetSettings(steamId).CraftPull) continue;
-                        Core.Log.LogInfo($"Handle pull for {fromCharacter.Character.Read<PlayerCharacter>().Name}");
+                        if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
                         HandleRecipePull(fromCharacter.Character, stopCraftEvent.RecipeGuid);
                     }
                     else
