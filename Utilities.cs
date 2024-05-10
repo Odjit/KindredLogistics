@@ -36,127 +36,6 @@ namespace KindredLogistics
                 ComponentType.ReadOnly(Il2CppType.Of<User>()),
         ];
 
-        public static void StashPlayerInventory(ulong playerId)
-        {
-            var serverGameManager = Core.ServerGameManager;
-            // need character entity of this platformId, query for User and match id then get character entity?
-            var userQuery = Core.EntityManager.CreateEntityQuery(Utilities.UserEntityQuery);
-            var users = userQuery.ToEntityArray(Allocator.TempJob);
-            var character = Entity.Null;
-            try
-            {
-                foreach (var user in users)
-                {
-                    if (user.Has<User>() && user.Read<User>().PlatformId == playerId)
-                    {
-                        character = user.Read<User>().LocalCharacter._Entity;
-                        break;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Core.Log.LogError($"Exited userQuery early: {e}");
-            }
-            finally
-            {
-                userQuery.Dispose();
-                users.Dispose();
-            }
-            var stashes = UpdateRefiningSystemPatch.stashesQuery.ToEntityArray(Allocator.TempJob);
-            var matches = new Dictionary<PrefabGUID, List<(Entity station, int amount)>>(capacity: 100);
-            // Find matches to use for autostash
-
-            try
-            {
-                foreach (var stash in stashes)
-                {
-                    if (!Core.EntityManager.Exists(stash)) continue;
-                    if (serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
-                    {
-                        Entity externalInventory = Entity.Null;
-                        foreach (var external in buffer)
-                        {
-                            if (!external.Entity.Has<PrefabGUID>()) continue;
-                            else if (external.Entity.Read<PrefabGUID>().Equals(UpdateRefiningSystemPatch.externalInventoryPrefab))
-                            {
-                                externalInventory = external.Entity;
-                                break;
-                            }
-                        }
-                        if (externalInventory.Equals(Entity.Null)) continue;
-                        if (serverGameManager.TryGetBuffer<InventoryBuffer>(externalInventory, out var inventoryBuffer) && !inventoryBuffer.IsEmpty)
-                        {
-                            for (int i = 0; i < inventoryBuffer.Length; i++)
-                            {
-                                PrefabGUID item = inventoryBuffer[i].ItemType;
-                                if (item.GuidHash == 0) continue;
-                                if (!matches.ContainsKey(item)) matches[item] = [];
-                                else if (matches.TryGetValue(item, out var list) && list.Any(entry => entry.station == stash)) continue;
-                                matches[item].Add((stash, serverGameManager.GetInventoryItemCount(externalInventory, item)));
-                            }
-                        }
-                        else
-                        {
-                            //Core.Log.LogInfo("No inventoryBuffer found for external inventory.");
-                        }
-                    }
-                    else
-                    {
-                        //Core.Log.LogInfo("No AttachedBuffer found for entity.");
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Core.Log.LogError($"Exited UpdateRefiningSystem matchesProcessing early: {e}");
-            }
-            finally
-            {
-                stashes.Dispose();
-            }
-            // get player inventory and find allied owned stashes in same territory with item matches
-            if (InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, character, out Entity inventory))
-            {
-                if (serverGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var buffer))
-                {
-                    for (int i = 0; i < buffer.Length; i++)
-                    {
-                        var item = buffer[i].ItemType;
-                        if (matches.TryGetValue(item, out List<(Entity, int)> stashEntities))
-                        {
-                            foreach (var stash in stashEntities)
-                            {
-                                var stashOwner = stash.Item1.Read<UserOwner>().Owner.GetEntityOnServer();
-                                if (!stashOwner.Equals(character.Read<PlayerCharacter>().UserEntity) || !Utilities.TerritoryCheck(character, stash.Item1))
-                                {
-                                    Core.Log.LogInfo("Stash not in territory/not owned by user, skipping...");
-                                    continue;
-                                }
-
-                                if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, stash.Item1, out Entity stashInventory))
-                                {
-                                    //Core.Log.LogInfo("No stash inventory entity found for stash during auto-stashing.");
-                                    continue;
-                                }
-
-                                int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                                Utilities.TransferItems(serverGameManager, inventory, stashInventory, item, transferAmount);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Core.Log.LogInfo($"No inventory buffer found for player {playerId}");
-                }
-            }
-            else
-            {
-                Core.Log.LogInfo($"No inventory entity found for player {playerId}");
-            }
-        }
-
         public static void StashServantInventory(Entity servant)
         {
             var serverGameManager = Core.ServerGameManager;
@@ -282,27 +161,14 @@ namespace KindredLogistics
 
         public static bool TerritoryCheck(Entity character, Entity target)
         {
-            TilePosition charPos = character.Read<TilePosition>();
-            if (target.Has<CastleHeartConnection>())
-            {
-                var heart = target.Read<CastleHeartConnection>().CastleHeartEntity._Entity;
-                var castleHeart = heart.Read<CastleHeart>();
-                var castleTerritory = castleHeart.CastleTerritoryEntity;
-                if (CastleTerritoryExtensions.IsTileInTerritory(Core.EntityManager, charPos.Tile, ref castleTerritory, out var _))
-                {
-                    Core.Log.LogInfo("Character is in same territory as target stash.");
-                    return true;
-                }
-                else
-                {
-                    Core.Log.LogInfo("Character is not in same territory as target stash.");
-                }
-            }
-            else
-            {
-                Core.Log.LogInfo("Target does not have CastleHeartConnection...");
-            }
-            return false;
+            if (!target.Has<CastleHeartConnection>())
+                return false;
+
+            var charPos = character.Read<TilePosition>();
+            var heart = target.Read<CastleHeartConnection>().CastleHeartEntity.GetEntityOnServer();
+            var castleHeart = heart.Read<CastleHeart>();
+            var castleTerritory = castleHeart.CastleTerritoryEntity;
+            return CastleTerritoryExtensions.IsTileInTerritory(Core.EntityManager, charPos.Tile, ref castleTerritory, out var _);
         }
 
         public static bool SharedHeartConnection(Entity input, Entity ouput)
@@ -311,7 +177,7 @@ namespace KindredLogistics
             {
                 var inputHeart = input.Read<CastleHeartConnection>().CastleHeartEntity._Entity;
                 var outputHeart = ouput.Read<CastleHeartConnection>().CastleHeartEntity._Entity;
-                if (inputHeart.Equals(outputHeart)) return true;
+                return inputHeart.Equals(outputHeart);
             }
             return false;
         }

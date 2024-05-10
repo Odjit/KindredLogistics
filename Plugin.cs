@@ -27,11 +27,6 @@ public class Plugin : BasePlugin
         _harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
         _harmony.PatchAll(System.Reflection.Assembly.GetExecutingAssembly());
 
-        foreach(var m in _harmony.GetPatchedMethods())
-        {
-            Log.LogInfo($"Patched method: {m.FullDescription()}");
-        }
-
         // Register all commands in the assembly with VCF
         CommandRegistry.RegisterAll();
     }

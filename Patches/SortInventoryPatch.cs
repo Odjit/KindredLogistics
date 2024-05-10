@@ -41,8 +41,7 @@ namespace KindreddLogistics.Patches
                             if ((serverTime - lastSortTime) < 1)
                             {
                                 found = true;
-                                Core.Log.LogInfo($"Stashing for {fromCharacter.Character.Read<PlayerCharacter>().Name}");
-                                Utilities.StashPlayerInventory(steamId);
+                                Core.Stash.StashCharacterInventory(fromCharacter.Character);
                             }
 
                             lastSort.RemoveAt(i);
