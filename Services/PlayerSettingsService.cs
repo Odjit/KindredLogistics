@@ -17,8 +17,8 @@ namespace KindredLogistics.Services
 
         public struct PlayerSettings
         {
-            public bool AutoStash { get; set; }
-            public bool AutoPull { get; set; }
+            public bool SortStash { get; set; }
+            public bool CraftPull { get; set; }
             public bool AutoStashMissions { get; set; }
         }
 
@@ -49,56 +49,38 @@ namespace KindredLogistics.Services
             File.WriteAllText(PLAYER_SETTINGS_PATH, json);
         }
 
-        public bool GetAutoStash(ulong playerId)
+        public bool IsSortStashEnabled(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return false;
-            return settings.AutoStash;
+            return settings.SortStash;
         }
 
-        public void SetAutoStash(ulong playerId, bool value)
+        public bool ToggleSortStash(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 settings = new PlayerSettings();
-            settings.AutoStash = value;
+            settings.SortStash = !settings.SortStash;
             playerSettings[playerId] = settings;
             SaveSettings();
+            return settings.SortStash;
         }
 
-        public bool ToggleAutoStash(ulong playerId)
-        {
-            if (!playerSettings.TryGetValue(playerId, out var settings))
-                settings = new PlayerSettings();
-            settings.AutoStash = !settings.AutoStash;
-            playerSettings[playerId] = settings;
-            SaveSettings();
-            return settings.AutoStash;
-        }
-
-        public bool GetAutoPull(ulong playerId)
+        public bool GetCraftPull(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return false;
-            return settings.AutoPull;
+            return settings.CraftPull;
         }
 
-        public void SetAutoPull(ulong playerId, bool value)
+        public bool ToggleCraftPull(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 settings = new PlayerSettings();
-            settings.AutoPull = value;
+            settings.CraftPull = !settings.CraftPull;
             playerSettings[playerId] = settings;
             SaveSettings();
-        }
-
-        public bool ToggleAutoPull(ulong playerId)
-        {
-            if (!playerSettings.TryGetValue(playerId, out var settings))
-                settings = new PlayerSettings();
-            settings.AutoPull = !settings.AutoPull;
-            playerSettings[playerId] = settings;
-            SaveSettings();
-            return settings.AutoPull;
+            return settings.CraftPull;
         }
 
         public bool GetAutoStashMissions(ulong playerId)
@@ -106,15 +88,6 @@ namespace KindredLogistics.Services
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return false;
             return settings.AutoStashMissions;
-        }
-
-        public void SetAutoStashMissions(ulong playerId, bool value)
-        {
-            if (!playerSettings.TryGetValue(playerId, out var settings))
-                settings = new PlayerSettings();
-            settings.AutoStashMissions = value;
-            playerSettings[playerId] = settings;
-            SaveSettings();
         }
 
         public bool ToggleAutoStashMissions(ulong playerId)

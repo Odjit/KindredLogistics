@@ -11,7 +11,7 @@ namespace Logistics.Commands
         {
             var SteamID = ctx.Event.User.PlatformId;
 
-            var autoStash = Core.PlayerSettings.ToggleAutoStash(SteamID);
+            var autoStash = Core.PlayerSettings.ToggleSortStash(SteamID);
             ctx.Reply($"AutoStash is {(autoStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
        
@@ -20,7 +20,7 @@ namespace Logistics.Commands
         {
             var SteamID = ctx.Event.User.PlatformId;
 
-            var autoPull = Core.PlayerSettings.ToggleAutoPull(SteamID);
+            var autoPull = Core.PlayerSettings.ToggleCraftPull(SteamID);
             ctx.Reply($"AutoPull is {(autoPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
         [Command(name: "autoStashMissions", shortHand: "am", adminOnly: false, usage: ".l am", description: "Toggles autostashing for servant missions.")]
@@ -39,8 +39,8 @@ namespace Logistics.Commands
 
             var settings = Core.PlayerSettings.GetSettings(SteamID);
             ctx.Reply("KindredLogistics settings:\n" +
-                      $"AutoStash: {(settings.AutoStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"AutoPull: {(settings.AutoPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"AutoStash: {(settings.SortStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"AutoPull: {(settings.CraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"AutoStashMissions: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}");
         }
        

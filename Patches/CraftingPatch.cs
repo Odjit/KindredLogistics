@@ -30,7 +30,7 @@ public class CraftingPatch
 
                         Core.Log.LogInfo($"StopCraftingSystem for {fromCharacter.Character.Read<PlayerCharacter>().Name}");
 
-                        if (!Core.PlayerSettings.GetSettings(steamId).AutoPull) continue;
+                        if (!Core.PlayerSettings.GetSettings(steamId).CraftPull) continue;
                         Core.Log.LogInfo($"Handle pull for {fromCharacter.Character.Read<PlayerCharacter>().Name}");
                         HandleRecipePull(fromCharacter.Character, stopCraftEvent.RecipeGuid);
                     }

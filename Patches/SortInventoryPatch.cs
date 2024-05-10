@@ -29,7 +29,7 @@ namespace KindreddLogistics.Patches
                     var fromCharacter = entity.Read<FromCharacter>();
                     var steamId = fromCharacter.User.Read<User>().PlatformId;
 
-                    if (!Core.PlayerSettings.GetAutoStash(steamId)) continue;
+                    if (!Core.PlayerSettings.IsSortStashEnabled(steamId)) continue;
 
                     var serverTime = Core.ServerTime;
                     var found = false;
