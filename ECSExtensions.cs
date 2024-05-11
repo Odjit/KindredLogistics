@@ -77,6 +77,12 @@ public static class ECSExtensions
             ? prefabCollectionSystem.PrefabGuidToNameDictionary[prefabGuid] + " " + prefabGuid : "GUID Not Found").ToString();
     }
 
+    public static string DisplayName(this PrefabGUID prefabGuid)
+    {
+        // Replace this with a user friendly name later
+        return "FALLBACK_"+prefabGuid.LookupName();
+    }
+
     public static void Add<T>(this Entity entity)
     {
         var ct = new ComponentType(Il2CppType.Of<T>());

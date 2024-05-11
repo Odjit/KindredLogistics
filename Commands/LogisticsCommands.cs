@@ -12,16 +12,16 @@ namespace Logistics.Commands
             var SteamID = ctx.Event.User.PlatformId;
 
             var autoStash = Core.PlayerSettings.ToggleSortStash(SteamID);
-            ctx.Reply($"AutoStash is {(autoStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+            ctx.Reply($"SortStash is {(autoStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
        
-        [Command(name: "craftPull", shortHand: "c", usage: ".l c", description: "Toggles right-clicking on recipes for missing ingredients.")]
+        [Command(name: "craftPull", shortHand: "cr", usage: ".l cr", description: "Toggles right-clicking on recipes for missing ingredients.")]
         public static void TogglePlayerAutoPull(ChatCommandContext ctx)
         {
             var SteamID = ctx.Event.User.PlatformId;
 
             var autoPull = Core.PlayerSettings.ToggleCraftPull(SteamID);
-            ctx.Reply($"AutoPull is {(autoPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+            ctx.Reply($"CraftPull is {(autoPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
         [Command(name: "autoStashMissions", shortHand: "asm", usage: ".l asm", description: "Toggles autostashing for servant missions.")]
         public static void ToggleServantAutoStash(ChatCommandContext ctx)

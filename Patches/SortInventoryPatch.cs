@@ -51,7 +51,6 @@ namespace KindreddLogistics.Patches
 
                     if(!found)
                     {
-                        Core.Log.LogInfo($"Adding sort time for {fromCharacter.Character.Read<PlayerCharacter>().Name} at {serverTime}");
                         lastSort.Add((steamId, serverTime));
                     }
                 }
