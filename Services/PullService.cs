@@ -18,12 +18,12 @@ namespace KindredLogistics.Services
             var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
 
 
-            var recipeName = recipeEntity.Read<PrefabGUID>().DisplayName();
+            var recipeName = recipeEntity.Read<PrefabGUID>().LookupName();
             var recipeOutputBuffer = recipeEntity.ReadBuffer<RecipeOutputBuffer>();
             if (recipeOutputBuffer.Length > 0)
             {
                 var recipeOutput = recipeOutputBuffer[0];
-                recipeName = recipeOutput.Guid.DisplayName();
+                recipeName = recipeOutput.Guid.ItemName();
             }
 
             ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching crafting materials for {recipeName}.");
@@ -73,7 +73,7 @@ namespace KindredLogistics.Services
 
                     if (requiredAmount > 0)
                     {
-                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find {requiredAmount}x {requirement.Guid.DisplayName()}.");
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find {requiredAmount}x {requirement.Guid.ItemName()}.");
                     }
                 }
             }

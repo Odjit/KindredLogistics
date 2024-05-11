@@ -160,7 +160,7 @@ namespace KindredLogistics.Services
                     int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
                     Utilities.TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
                     ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
-                        $"Stashed {transferAmount}x {item.DisplayName()} to {stashEntry.stash.Read<NameableInteractable>().Name}");
+                        $"Stashed {transferAmount}x {item.ItemName()} to {stashEntry.stash.Read<NameableInteractable>().Name}");
                 }
             }
         }

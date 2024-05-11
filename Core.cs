@@ -13,6 +13,7 @@ internal static class Core
     // V Rising systems
 	public static EntityManager EntityManager { get; } = Server.EntityManager;
     public static PrefabCollectionSystem PrefabCollectionSystem { get; internal set; }
+    public static ServerGameSettingsSystem ServerGameSettingsSystem { get; internal set; }
     public static ServerScriptMapper ServerScriptMapper { get; internal set; }
     public static double ServerTime => ServerGameManager.ServerTime;
     public static ServerGameManager ServerGameManager => ServerScriptMapper.GetServerGameManager();
@@ -21,8 +22,10 @@ internal static class Core
     public static ManualLogSource Log => Plugin.LogInstance;
 
     // KindredLogistics services
-	public static PlayerSettingsService PlayerSettings { get; } = new();
     public static ConveyorService ConveyorService { get; internal set; }
+
+    public static LocalizationService Localization { get; } = new();
+    public static PlayerSettingsService PlayerSettings { get; } = new();
     public static RefinementStationsService RefinementStations { get; internal set; }
     public static RegionService RegionService { get; internal set; }
     public static StashService Stash { get; } = new();
@@ -34,6 +37,7 @@ internal static class Core
         if (hasInitialized) return;
 
         PrefabCollectionSystem = Server.GetExistingSystemManaged<PrefabCollectionSystem>();
+        ServerGameSettingsSystem = Server.GetExistingSystemManaged<ServerGameSettingsSystem>();
         ServerScriptMapper = Server.GetExistingSystemManaged<ServerScriptMapper>();
 
         // Initialize utility services

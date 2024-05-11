@@ -23,6 +23,7 @@ namespace KindredLogistics.Services
                 ComponentType.ReadOnly(Il2CppType.Of<NameableInteractable>()),
                 ComponentType.ReadOnly(Il2CppType.Of<UserOwner>()),
                 ComponentType.ReadOnly(Il2CppType.Of<RefinementstationRecipesBuffer>()),
+                ComponentType.ReadOnly(Il2CppType.Of<CastleWorkstation>()),
             ];
 
         public delegate bool StationFilter(Entity station);

@@ -63,6 +63,8 @@ namespace KindredLogistics.Services
             foreach(var (territoryIndex, group, station) in Core.RefinementStations.GetAllReceivingStations(IsProcessingConveyor))
             {
                 var receivingStation = station.Read<Refinementstation>();
+                var castleWorkstation = station.Read<CastleWorkstation>();
+                var matchFloorReduction = castleWorkstation.WorkstationLevel.HasFlag(WorkstationLevel.MatchingFloor) ? 0.75f : 1f;
                 var inputInventoryEntity = receivingStation.InputInventoryEntity.GetEntityOnServer();
                 var inventoryBuffer = inputInventoryEntity.ReadBuffer<InventoryBuffer>();
                 var recipesBuffer = station.ReadBuffer<RefinementstationRecipesBuffer>();
@@ -75,7 +77,7 @@ namespace KindredLogistics.Services
                     foreach (var requirement in requirements)
                     {
                         // Always desire 2x the amount so the moment it finishes it immediately starts again
-                        var amountWanted = 2 * requirement.Amount;
+                        var amountWanted = Mathf.RoundToInt(2 * requirement.Amount * matchFloorReduction * Core.ServerGameSettingsSystem.Settings.RefinementCostModifier);
 
                         // Check how much is already in the inventory
                         int has = 0;
@@ -96,7 +98,7 @@ namespace KindredLogistics.Services
                             receivingNeeds[(territoryIndex, group, requirement.Guid)] = needs;
                         }
 
-                        needs.Add((inputInventoryEntity, requirement.Amount));
+                        needs.Add((inputInventoryEntity, amountWanted));
                     }
                 }
             }
