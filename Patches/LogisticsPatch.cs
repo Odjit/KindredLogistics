@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 
 namespace KindredLogistics.Patches;
 
@@ -21,83 +22,6 @@ public static class UpdateRefiningSystemPatch
     {
         stationsQuery = Core.EntityManager.CreateEntityQuery(Utilities.RefinementStationQuery);
         stashesQuery = Core.EntityManager.CreateEntityQuery(Utilities.StashQuery);
-    }
-
-    public static void Prefix(UpdateRefiningSystem __instance)
-    {
-        //Core.Log.LogInfo("Running UpdateRefiningSystem hook...");
-        NativeArray<Entity> stations = stationsQuery.ToEntityArray(Allocator.TempJob);
-        var needs = new Dictionary<PrefabGUID, List<(Entity station, int amount)>>(capacity: 25);
-        // assess the needs of each station based on recipe inputs
-        try
-        {
-            foreach (var station in stations)
-            {
-                if (!Core.EntityManager.Exists(station) ||
-                    !station.Has<Refinementstation>() ||
-                    !station.Read<NameableInteractable>().Name.ToString().ToLower().Contains("receiver") ||
-                    !station.Has<UserOwner>() ||
-                    !Core.PlayerSettings.IsConveyorEnabled(station.Read<UserOwner>().Owner.GetEntityOnServer().Read<User>().PlatformId))
-                    continue;
-
-                var recipesBuffer = station.ReadBuffer<RefinementstationRecipesBuffer>();
-                foreach (var recipe in recipesBuffer)
-                {
-                    Entity recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe.RecipeGuid];
-                    var requirements = recipeEntity.ReadBuffer<RecipeRequirementBuffer>();
-                    foreach (var requirement in requirements)
-                    {
-                        if (!needs.ContainsKey(requirement.Guid)) needs[requirement.Guid] = [];
-
-                        needs[requirement.Guid].Add((station, requirement.Amount));
-                    }
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Core.Log.LogError($"Exited UpdateRefiningSystem needsProcessing early: {e}");
-        }
-        finally
-        {
-            stations.Dispose();
-        }
-        var providers = __instance._Query.ToEntityArray(Allocator.TempJob); // try to fulfill needs from available outputs in system query
-        try
-        {
-            var serverGameManager = Core.ServerGameManager;
-            foreach (var provider in providers)
-            {
-                if (!Core.EntityManager.Exists(provider) || !provider.Has<Refinementstation>() || !provider.Read<NameableInteractable>().Name.ToString().ToLower().Contains("provider")) continue;
-                var refinementStation = provider.Read<Refinementstation>();
-
-                var outputInventory = refinementStation.OutputInventoryEntity._Entity;
-                foreach (var needKey in needs.Keys)
-                {
-                    int availableAmount = serverGameManager.GetInventoryItemCount(outputInventory, needKey);
-                    if (availableAmount <= 0) continue;
-
-                    foreach (var (station, amount) in needs[needKey])
-                    {
-                        if (!Utilities.SharedHeartConnection(provider, station)) continue;
-
-                        var receivingStation = station.Read<Refinementstation>();
-                        var inputInventory = receivingStation.InputInventoryEntity._Entity;
-
-                        var transferAmount = Math.Min(amount, availableAmount);
-                        Utilities.TransferItems(serverGameManager, outputInventory, inputInventory, needKey, transferAmount);
-                    }
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Core.Log.LogError($"Exited UpdateRefiningSystem providerProcessing early: {e}");
-        }
-        finally
-        {
-            providers.Dispose();
-        }
     }
 }
 

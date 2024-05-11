@@ -530,4 +530,7 @@
 			<HintPath>..\interop\__Generated.dll</HintPath>
 		</Reference>
 	</ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\VRisingDedicatedServer\BepInEx\plugins&quot; " />
+  </Target>
 </Project>

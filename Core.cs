@@ -22,7 +22,11 @@ internal static class Core
 
     // KindredLogistics services
 	public static PlayerSettingsService PlayerSettings { get; } = new();
+    public static ConveyorService ConveyorService { get; internal set; }
+    public static RefinementStationsService RefinementStations { get; internal set; }
+    public static RegionService RegionService { get; internal set; }
     public static StashService Stash { get; } = new();
+    public static TerritoryService TerritoryService { get; internal set; }
 
     static bool hasInitialized;
     public static void Initialize()
@@ -32,7 +36,15 @@ internal static class Core
         PrefabCollectionSystem = Server.GetExistingSystemManaged<PrefabCollectionSystem>();
         ServerScriptMapper = Server.GetExistingSystemManaged<ServerScriptMapper>();
 
-		Core.Log.LogInfo("KindredLogistics initialized");
+        // Initialize utility services
+        RefinementStations = new();
+        RegionService = new();
+        TerritoryService = new();
+
+        // Now start services that actually do stuff
+        ConveyorService = new();
+
+        Core.Log.LogInfo("KindredLogistics initialized");
 
         hasInitialized = true;
     }

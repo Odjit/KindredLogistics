@@ -1,10 +1,12 @@
-﻿using KindredLogistics.Patches;
+﻿using Il2CppInterop.Runtime;
 using ProjectM;
+using ProjectM.CastleBuilding;
 using ProjectM.Network;
 using Stunlock.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -12,6 +14,68 @@ namespace KindredLogistics.Services
 {
     internal class StashService
     {
+        static readonly ComponentType[] StashQuery =
+            [
+                ComponentType.ReadOnly(Il2CppType.Of<InventoryOwner>()),
+                ComponentType.ReadOnly(Il2CppType.Of<CastleHeartConnection>()),
+                ComponentType.ReadOnly(Il2CppType.Of<AttachedBuffer>()),
+                ComponentType.ReadOnly(Il2CppType.Of<NameableInteractable>()),
+            ];
+        public static readonly PrefabGUID ExternalInventoryPrefab = new(1183666186);
+
+        public delegate bool StashFilter(Entity station);
+
+        EntityQuery stashQuery;
+        readonly Regex receiverRegex;
+        readonly Regex senderRegex;
+
+        public StashService()
+        {
+            stashQuery = Core.EntityManager.CreateEntityQuery(StashQuery);
+            receiverRegex = new Regex(Const.RECEIVER_REGEX, RegexOptions.Compiled);
+            senderRegex = new Regex(Const.SENDER_REGEX, RegexOptions.Compiled);
+        }
+
+        public IEnumerable<(int territoryIndex, int group, Entity station)> GetAllReceivingStashes(StashFilter filter = null)
+        {
+            foreach (var result in GetAllGroupStations(receiverRegex, filter))
+            {
+                yield return result;
+            }
+        }
+
+        public IEnumerable<(int territoryIndex, int group, Entity station)> GetAllSendingStashes(StashFilter filter = null)
+        {
+            foreach (var result in GetAllGroupStations(senderRegex, filter))
+            {
+                yield return result;
+            }
+        }
+
+        IEnumerable<(int territoryIndex, int group, Entity station)> GetAllGroupStations(Regex groupRegex, StashFilter filter = null)
+        {
+            var stationArray = stashQuery.ToEntityArray(Allocator.Temp);
+            try
+            {
+                foreach (var station in stationArray)
+                {
+                    if (filter != null && !filter(station))
+                        continue;
+
+                    var name = station.Read<NameableInteractable>().Name.ToString().ToLower();
+                    foreach (Match match in groupRegex.Matches(name))
+                    {
+                        var group = int.Parse(match.Groups[1].Value);
+                        yield return (Core.TerritoryService.GetTerritoryId(station), group, station);
+                    }
+                }
+            }
+            finally
+            {
+                stationArray.Dispose();
+            }
+        }
+
         public void StashCharacterInventory(Entity charEntity)
         {
             var userEntity = charEntity.Read<PlayerCharacter>().UserEntity;
@@ -19,7 +83,7 @@ namespace KindredLogistics.Services
             ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Stashing your inventory to storage on your current territory");
 
             var serverGameManager = Core.ServerGameManager;
-            var stashes = UpdateRefiningSystemPatch.stashesQuery.ToEntityArray(Allocator.TempJob);
+            var stashes = stashQuery.ToEntityArray(Allocator.TempJob);
             var matches = new Dictionary<PrefabGUID, List<(Entity station, int amount)>>(capacity: 100);
             try
             {
@@ -32,7 +96,7 @@ namespace KindredLogistics.Services
                         foreach (var external in buffer)
                         {
                             if (!external.Entity.Has<PrefabGUID>()) continue;
-                            else if (external.Entity.Read<PrefabGUID>().Equals(UpdateRefiningSystemPatch.externalInventoryPrefab))
+                            else if (external.Entity.Read<PrefabGUID>().Equals(ExternalInventoryPrefab))
                             {
                                 externalInventory = external.Entity;
                                 break;
