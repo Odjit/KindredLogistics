@@ -13,7 +13,7 @@ namespace KindredLogistics.Patches;
 
 public class CraftingPatch
 {
-    private static Dictionary<ulong, Dictionary<NetworkId, HashSet<PrefabGUID>>> PlayerCraftingJobs = [];
+    private static Dictionary<NetworkId, HashSet<PrefabGUID>> StationCraftingJobs = [];
 
     [HarmonyPatch(typeof(StartCraftingSystem), nameof(StartCraftingSystem.OnUpdate))]
     public static class StartCraftingSystemPatch
@@ -32,16 +32,13 @@ public class CraftingPatch
                         StartCraftItemEvent startCraftItemEvent = entity.Read<StartCraftItemEvent>();
                         NetworkId networkId = startCraftItemEvent.Workstation;
                         PrefabGUID prefabGUID = startCraftItemEvent.RecipeId;
-                        if (PlayerCraftingJobs.TryGetValue(steamId, out var craftingJobs) && craftingJobs.TryGetValue(networkId, out var jobs))
+                        if (StationCraftingJobs.TryGetValue(networkId, out var craftingJobs))
                         {
-                            jobs.Add(prefabGUID);
+                            craftingJobs.Add(prefabGUID);
                         }
                         else
                         {
-                            PlayerCraftingJobs[steamId] = new Dictionary<NetworkId, HashSet<PrefabGUID>>()
-                            {
-                                { networkId, new HashSet<PrefabGUID>() { prefabGUID } }
-                            };
+                            StationCraftingJobs.Add(networkId, [prefabGUID]);
                         }
                     }
                 }
@@ -76,9 +73,9 @@ public class CraftingPatch
                         ulong steamId = fromCharacter.User.Read<User>().PlatformId;
                         PrefabGUID prefabGUID = stopCraftEvent.RecipeGuid;
                         if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
-                        if (PlayerCraftingJobs.TryGetValue(steamId, out var craftingJobs) && craftingJobs.TryGetValue(networkId, out var jobs) && jobs.Contains(prefabGUID))
+                        if (StationCraftingJobs.TryGetValue(networkId, out var craftingJobs) && craftingJobs.Contains(prefabGUID))
                         {
-                            jobs.Remove(prefabGUID);
+                            craftingJobs.Remove(prefabGUID);
                             continue;
                         }
                         else
