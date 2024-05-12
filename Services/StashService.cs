@@ -158,9 +158,10 @@ namespace KindredLogistics.Services
                 foreach (var stashEntry in stashEntries)
                 {
                     int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
+                    if (transferAmount == 0) break;
                     Utilities.TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
                     ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
-                        $"Stashed {transferAmount}x {item.ItemName()} to {stashEntry.stash.Read<NameableInteractable>().Name}");
+                        $"Stashed {transferAmount}x {item.PrefabName()} to {stashEntry.stash.EntityName()}");
                 }
             }
         }

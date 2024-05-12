@@ -33,12 +33,12 @@ namespace KindredLogistics.Services
         }
 
         Dictionary<string, string> localization = [];
-        Dictionary<int, string> itemNames = [];
+        Dictionary<int, string> prefabNames = [];
 
         public LocalizationService()
         {
             LoadLocalization();
-            LoadItemNames();
+            LoadPrefabNames();
         }
 
         void LoadLocalization()
@@ -62,9 +62,9 @@ namespace KindredLogistics.Services
             }
         }
 
-        void LoadItemNames()
+        void LoadPrefabNames()
         {
-            var resourceName = "KindredLogistics.Data.ItemNames.json";
+            var resourceName = "KindredLogistics.Data.PrefabNames.json";
 
             var assembly = Assembly.GetExecutingAssembly();
             var stream = assembly.GetManifestResourceStream(resourceName);
@@ -73,7 +73,7 @@ namespace KindredLogistics.Services
                 using (var reader = new StreamReader(stream))
                 {
                     string jsonContent = reader.ReadToEnd();
-                    itemNames = JsonSerializer.Deserialize<Dictionary<int, string>>(jsonContent);
+                    prefabNames = JsonSerializer.Deserialize<Dictionary<int, string>>(jsonContent);
                 }
             }
             else
@@ -97,9 +97,9 @@ namespace KindredLogistics.Services
             return GetLocalization(guid);
         }
 
-        public string GetItemName(PrefabGUID itemPrefabGUID)
+        public string GetPrefabName(PrefabGUID itemPrefabGUID)
         {
-            if(!itemNames.TryGetValue(itemPrefabGUID._Value, out var itemLocalizationHash))
+            if(!prefabNames.TryGetValue(itemPrefabGUID._Value, out var itemLocalizationHash))
             {
                 return null;
             }

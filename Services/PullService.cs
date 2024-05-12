@@ -23,7 +23,7 @@ namespace KindredLogistics.Services
             if (recipeOutputBuffer.Length > 0)
             {
                 var recipeOutput = recipeOutputBuffer[0];
-                recipeName = recipeOutput.Guid.ItemName();
+                recipeName = recipeOutput.Guid.PrefabName();
             }
 
             ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching crafting materials for {recipeName}.");
@@ -73,7 +73,7 @@ namespace KindredLogistics.Services
 
                     if (requiredAmount > 0)
                     {
-                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find {requiredAmount}x {requirement.Guid.ItemName()}.");
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find {requiredAmount}x {requirement.Guid.PrefabName()}.");
                     }
                 }
             }
