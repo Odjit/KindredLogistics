@@ -151,7 +151,7 @@ namespace KindredLogistics.Services
                 }
                 if (!fetchedMaterials)
                 {
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Already had materials for crafting <color=yellow>{recipeName}</color>!");
+                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Already have materials for crafting <color=yellow>{recipeName}</color>!");
                 }
             }
             catch (Exception e)

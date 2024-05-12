@@ -50,7 +50,7 @@ namespace KindredLogistics.Services
             {
                 foreach (var stash in stashArray)
                 {
-                    //if (stash.Has<CastleWorkstation>()) continue;
+                    
                     if (!serverGameManager.IsAllies(stash, character)) continue;
                     if (Core.TerritoryService.GetTerritoryId(stash) != territoryIndex) continue;
 
@@ -127,6 +127,7 @@ namespace KindredLogistics.Services
             {
                 foreach (var stash in GetAllAlliedStashesOnTerritory(charEntity))
                 {
+                    if (stash.Has<CastleWorkstation>()) continue;
                     if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                         continue;
 
