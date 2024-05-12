@@ -83,7 +83,7 @@ public class CraftingPatch
                         }
                         else
                         {
-                            PullService.HandleRecipePull(fromCharacter.Character, prefabGUID);
+                            PullService.HandleRecipePull(fromCharacter.Character, station, prefabGUID);
                         }
                     }
                 }

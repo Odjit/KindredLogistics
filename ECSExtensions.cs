@@ -108,5 +108,6 @@ public static class ECSExtensions
         var ct = new ComponentType(Il2CppType.Of<T>());
         EntityManager.RemoveComponent(entity, ct);
     }
+    
 }
 

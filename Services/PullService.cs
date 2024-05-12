@@ -67,10 +67,9 @@ namespace KindredLogistics.Services
                 recipeName = recipeOutput.Guid.PrefabName();
             }
 
-            Core.Log.LogInfo($"Workstation {workstation.Index} {workstation.Version} is pulling {recipeName}.");
-            //var castleWorkstation = workstation.Read<CastleWorkstation>();
-            var recipeReduction = Core.ServerGameSettingsSystem.Settings.RecipeCostModifier;// castleWorkstation.WorkstationLevel.HasFlag(WorkstationLevel.MatchingFloor) ? 0.75f : 1f;
-
+            var castleWorkstation = workstation.Read<CastleWorkstation>();
+            var recipeReduction = castleWorkstation.WorkstationLevel.HasFlag(WorkstationLevel.MatchingFloor) ? 0.75f : 1f;
+            //Core.Log.LogInfo($"{castleWorkstation.WorkstationLevel} | {recipeReduction}");
             ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching crafting materials for {recipeName}.");
 
             var requirements = recipeEntity.ReadBuffer<RecipeRequirementBuffer>();
@@ -89,7 +88,7 @@ namespace KindredLogistics.Services
                     var requiredAmount = Mathf.RoundToInt(requirement.Amount * recipeReduction);
                     if (currentAmount >= requiredAmount) continue;
 
-                    requiredAmount = requirement.Amount - currentAmount;
+                    requiredAmount -= currentAmount;
 
                     foreach (var stash in Core.Stash.GetAllAlliedStashesOnTerritory(character))
                     {
@@ -103,6 +102,9 @@ namespace KindredLogistics.Services
                             if (!attachedEntity.Read<PrefabGUID>().Equals(StashService.ExternalInventoryPrefab)) continue;
 
                             var stashItemCount = serverGameManager.GetInventoryItemCount(attachedEntity, requirement.Guid);
+
+                            if (stashItemCount == 0) continue;
+
                             if (stashItemCount >= requiredAmount)
                             {
                                 Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requirement.Guid, requiredAmount);

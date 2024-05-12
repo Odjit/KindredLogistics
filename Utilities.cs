@@ -137,24 +137,24 @@ namespace KindredLogistics
             {
                 if (serverGameManager.TryAddInventoryItem(inputInventory, itemGuid, transferAmount))
                 {
-                    Core.Log.LogInfo($"Moved {transferAmount} of {itemGuid.LookupName()} from Input to Output");
+                    //Core.Log.LogInfo($"Moved {transferAmount} of {itemGuid.LookupName()} from Input to Output");
                 }
                 else
                 {
-                    Core.Log.LogInfo($"Failed to add {itemGuid.LookupName()}x{transferAmount} to OutputInventory, reverting...");
+                    //Core.Log.LogInfo($"Failed to add {itemGuid.LookupName()}x{transferAmount} to OutputInventory, reverting...");
                     if (serverGameManager.TryAddInventoryItem(outputInventory, itemGuid, transferAmount))
                     {
-                        Core.Log.LogInfo($"Restored items to original inventory.");
+                        //Core.Log.LogInfo($"Restored items to original inventory.");
                     }
                     else
                     {
-                        Core.Log.LogInfo($"Unable to return items to original inventory.");
+                        //Core.Log.LogInfo($"Unable to return items to original inventory.");
                     }
                 }
             }
             else
             {
-                Core.Log.LogInfo($"Failed to remove {itemGuid.LookupName()}x{transferAmount} from Input");
+                //Core.Log.LogInfo($"Failed to remove {itemGuid.LookupName()}x{transferAmount} from Input");
             }
         }
     }
