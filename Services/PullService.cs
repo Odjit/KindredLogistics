@@ -45,7 +45,7 @@ namespace KindredLogistics.Services
 
                     var transferAmount = Mathf.Min(stashItemCount, quantityRemaining);
                     Utilities.TransferItems(serverGameManager, attachedEntity, inventory, item, transferAmount);
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"{transferAmount}x {item.PrefabName()} fetched from {stash.EntityName()}.");
+                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=#00FFFF>{item.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                     quantityRemaining -= transferAmount;
                     if(quantityRemaining <= 0)
                         break;
@@ -111,7 +111,7 @@ namespace KindredLogistics.Services
                     if (!fetchedMaterials)
                     {
                         fetchedMaterials = true;
-                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching crafting materials for {recipeName}.");
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching materials for <color=yellow>{recipeName}</color>...");
                     }
 
                     requiredAmount -= currentAmount;
@@ -137,7 +137,7 @@ namespace KindredLogistics.Services
 
                             var transferAmount = Mathf.Min(stashItemCount, requiredAmount);
                             Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requirement.Guid, transferAmount);
-                            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"{transferAmount}x {requirement.Guid.PrefabName()} fetched from {stash.EntityName()}.");
+                            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{requirement.Guid.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                             requiredAmount -= transferAmount;
                             if (requiredAmount <= 0)
                                 break;
@@ -146,12 +146,12 @@ namespace KindredLogistics.Services
 
                     if (requiredAmount > 0)
                     {
-                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find {requiredAmount}x {requirement.Guid.PrefabName()}.");
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find <color=white>{requiredAmount}</color>x <color=green>{requirement.Guid.PrefabName()}</color> for recipe...");
                     }
                 }
                 if (!fetchedMaterials)
                 {
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Already had materials for crafting {recipeName}.");
+                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Already had materials for crafting <color=yellow>{recipeName}</color>!");
                 }
             }
             catch (Exception e)
