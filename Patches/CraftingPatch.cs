@@ -28,7 +28,11 @@ public class CraftingPatch
                         ulong steamId = fromCharacter.User.Read<User>().PlatformId;
 
                         if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
-                        PullService.HandleRecipePull(fromCharacter.Character, stopCraftEvent.RecipeGuid);
+                        
+                        var workstation = new Entity();
+                        workstation.Index = stopCraftEvent.Workstation.Normal_Index;
+                        workstation.Version = stopCraftEvent.Workstation.Normal_Generation;
+                        PullService.HandleRecipePull(fromCharacter.Character, workstation, stopCraftEvent.RecipeGuid);
                     }
                 }
             }

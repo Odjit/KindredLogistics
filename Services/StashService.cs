@@ -15,6 +15,7 @@ namespace KindredLogistics.Services
     internal class StashService
     {
         const int ACTION_BAR_SLOTS = 8;
+        const string SKIP_SUFFIX = "''";
 
         static readonly ComponentType[] StashQuery =
             [
@@ -50,7 +51,8 @@ namespace KindredLogistics.Services
                     if (!serverGameManager.IsAllies(stash, character)) continue;
                     if (Core.TerritoryService.GetTerritoryId(stash) != territoryIndex) continue;
 
-                    var name = stash.Read<NameableInteractable>().Name.ToString().ToLower();
+                    var name = stash.Read<NameableInteractable>().Name.ToString();
+                    if (name.EndsWith(SKIP_SUFFIX)) continue;
 
                     yield return stash;
                 }
