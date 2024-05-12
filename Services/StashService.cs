@@ -50,7 +50,7 @@ namespace KindredLogistics.Services
             {
                 foreach (var stash in stashArray)
                 {
-                    if (stash.Has<CastleWorkstation>()) continue;
+                    //if (stash.Has<CastleWorkstation>()) continue;
                     if (!serverGameManager.IsAllies(stash, character)) continue;
                     if (Core.TerritoryService.GetTerritoryId(stash) != territoryIndex) continue;
 
