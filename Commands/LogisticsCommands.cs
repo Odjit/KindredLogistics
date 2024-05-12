@@ -130,7 +130,7 @@ namespace Logistics.Commands
             if(amountRemaining <= 0)
                 ctx.Reply($"Pulled {quantity}x {item.prefab.PrefabName()} from containers.");
             else
-                ctx.Reply($"Pulled {quantity - amountRemaining}x {item.prefab.PrefabName()} from containers. Couldn't find {amountRemaining}x");
+                ctx.Reply($"Was able to only pull {quantity - amountRemaining}x out of desired {quantity}x {item.prefab.PrefabName()} from containers.");
         }
 
         [Command(name: "finditem", shortHand: "fi", description: "Finds the specified item in containers")]
