@@ -19,8 +19,14 @@ namespace KindredLogistics.Services
 
         public struct PlayerSettings
         {
+            public PlayerSettings()
+            {
+                DontPullLast = true;
+            }
+
             public bool SortStash { get; set; }
             public bool CraftPull { get; set; }
+            public bool DontPullLast { get; set; }
             public bool AutoStashMissions { get; set; }
             public bool Conveyor { get; set; }
         }
@@ -96,6 +102,23 @@ namespace KindredLogistics.Services
             playerSettings[playerId] = settings;
             SaveSettings();
             return settings.CraftPull;
+        }
+
+        public bool IsDontPullLastEnabled(ulong playerId)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                return false;
+            return settings.DontPullLast;
+        }
+
+        public bool ToggleDontPullLast(ulong playerId = GLOBAL_PLAYER_ID)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                settings = new PlayerSettings();
+            settings.DontPullLast = !settings.DontPullLast;
+            playerSettings[playerId] = settings;
+            SaveSettings();
+            return settings.DontPullLast;
         }
 
         public bool IsAutoStashMissionsEnabled(ulong playerId)

@@ -13,6 +13,7 @@ namespace KindredLogistics.Services
     {
         public static int PullItem(Entity character, PrefabGUID item, int quantity)
         {
+            var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();
             var entityManager = Core.EntityManager;
             var serverGameManager = Core.ServerGameManager;
 
@@ -21,6 +22,8 @@ namespace KindredLogistics.Services
                 Core.Log.LogWarning($"No inventory found for character {character}.");
                 return quantity;
             }
+
+            var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
 
             var quantityRemaining = quantity;
             foreach (var stash in Core.Stash.GetAllAlliedStashesOnTerritory(character))
@@ -35,17 +38,17 @@ namespace KindredLogistics.Services
                     if (!attachedEntity.Read<PrefabGUID>().Equals(StashService.ExternalInventoryPrefab)) continue;
 
                     var stashItemCount = serverGameManager.GetInventoryItemCount(attachedEntity, item);
-                    if (stashItemCount >= quantityRemaining)
-                    {
-                        Utilities.TransferItems(serverGameManager, attachedEntity, inventory, item, quantityRemaining);
-                        quantityRemaining = 0;
+                    if (dontPullLast)
+                        stashItemCount -= 1;
+
+                    if (stashItemCount <= 0) continue;
+
+                    var transferAmount = Mathf.Min(stashItemCount, quantityRemaining);
+                    Utilities.TransferItems(serverGameManager, attachedEntity, inventory, item, transferAmount);
+                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"{transferAmount}x {item.PrefabName()} fetched from {stash.EntityName()}.");
+                    quantityRemaining -= transferAmount;
+                    if(quantityRemaining <= 0)
                         break;
-                    }
-                    else
-                    {
-                        Utilities.TransferItems(serverGameManager, attachedEntity, inventory, item, stashItemCount);
-                        quantityRemaining -= stashItemCount;
-                    }
                 }
             }
 
@@ -69,6 +72,8 @@ namespace KindredLogistics.Services
 
             var castleWorkstation = workstation.Read<CastleWorkstation>();
             var recipeReduction = castleWorkstation.WorkstationLevel.HasFlag(WorkstationLevel.MatchingFloor) ? 0.75f : 1f;
+
+            var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
 
             var requirements = recipeEntity.ReadBuffer<RecipeRequirementBuffer>();
             var stashes = UpdateRefiningSystemPatch.stashesQuery.ToEntityArray(Allocator.TempJob);
@@ -125,11 +130,14 @@ namespace KindredLogistics.Services
 
                             var stashItemCount = serverGameManager.GetInventoryItemCount(attachedEntity, requirement.Guid);
 
-                            if (stashItemCount == 0) continue;
+                            if (dontPullLast)
+                                stashItemCount -= 1;
+
+                            if (stashItemCount <= 0) continue;
+
                             var transferAmount = Mathf.Min(stashItemCount, requiredAmount);
                             Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requirement.Guid, transferAmount);
                             ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"{transferAmount}x {requirement.Guid.PrefabName()} fetched from {stash.EntityName()}.");
-                            
                             requiredAmount -= transferAmount;
                             if (requiredAmount <= 0)
                                 break;

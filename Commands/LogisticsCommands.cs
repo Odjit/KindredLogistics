@@ -26,6 +26,16 @@ namespace Logistics.Commands
             var autoPull = Core.PlayerSettings.ToggleCraftPull(SteamID);
             ctx.Reply($"CraftPull is {(autoPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
+
+        [Command(name: "dontPullLast", shortHand: "dpl", usage: ".l dpl", description: "Toggles the ability to not pull the last item from a container for Logistics commands.")]
+        public static void ToggleDontPullLast(ChatCommandContext ctx)
+        {
+            var SteamID = ctx.Event.User.PlatformId;
+
+            var dontPullLast = Core.PlayerSettings.ToggleDontPullLast(SteamID);
+            ctx.Reply($"DontPullLast is {(dontPullLast ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
         [Command(name: "autoStashMissions", shortHand: "asm", usage: ".l asm", description: "Toggles autostashing for servant missions.")]
         public static void ToggleServantAutoStash(ChatCommandContext ctx)
         {
@@ -54,6 +64,7 @@ namespace Logistics.Commands
             ctx.Reply("KindredLogistics settings:\n" +
                       $"SortStash{(globalSettings.SortStash ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.SortStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"CraftPull{(globalSettings.CraftPull ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.CraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"DontPullLast: {(settings.DontPullLast ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"AutoStashMissions{(globalSettings.AutoStashMissions ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
                       );
