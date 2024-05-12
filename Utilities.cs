@@ -58,7 +58,7 @@ namespace KindredLogistics
                     {
                         Entity attachedEntity = attachedBuffer.Entity;
                         if (!attachedEntity.Has<PrefabGUID>()) continue;
-                        if (!attachedEntity.Read<PrefabGUID>().Equals(StashServices.ExternalInventoryPrefab)) continue;
+                        if (!attachedEntity.Read<PrefabGUID>().Equals(StashService.ExternalInventoryPrefab)) continue;
 
                         var checkInventoryBuffer = attachedEntity.ReadBuffer<InventoryBuffer>();
                         foreach (var inventoryEntry in checkInventoryBuffer)
