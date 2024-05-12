@@ -39,123 +39,71 @@ namespace KindredLogistics
         public static void StashServantInventory(Entity servant)
         {
             var serverGameManager = Core.ServerGameManager;
-            // need character entity of this platformId, query for User and match id then get character entity?
-            var stashes = UpdateRefiningSystemPatch.stashesQuery.ToEntityArray(Allocator.TempJob);
-            var matches = new Dictionary<PrefabGUID, List<(Entity station, int amount)>>(capacity: 100);
-            // Find matches to use for autostash
-            // want to do query for appropriate stash with missions in the name as well for any loot that cant be autostashed
-            var missionStash = Entity.Null;
+            var matches = new NativeHashMap<PrefabGUID, List<(Entity stash, Entity inventory)>>(100, Allocator.TempJob);
+            (Entity stash, Entity inventory) missionStash = (Entity.Null, Entity.Null);
             try
             {
-                foreach (var stash in stashes)
+                foreach (Entity stash in StashService.GetAllAlliedStashesOnTerritory(servant))
                 {
-                    if (!Core.EntityManager.Exists(stash)) continue;
-                    if (Utilities.SharedHeartConnection(servant, stash) && stash.Read<NameableInteractable>().Name.ToString().ToLower().Contains("spoils") && missionStash.Equals(Entity.Null)) // store mission stash for later
+                    if (stash.Read<NameableInteractable>().Name.ToString().ToLower().Contains("spoils") && missionStash.stash.Equals(Entity.Null)) // store mission stash for later
                     {
-                        missionStash = stash;
+                        if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, stash, out Entity missionInventory)) continue;
+                        missionStash = (stash, missionInventory);
                         break;
                     }
-                    if (serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
+                    if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
+                        continue;
+
+                    foreach (var attachedBuffer in buffer)
                     {
-                        Entity externalInventory = Entity.Null;
-                        foreach (var external in buffer)
+                        Entity attachedEntity = attachedBuffer.Entity;
+                        if (!attachedEntity.Has<PrefabGUID>()) continue;
+                        if (!attachedEntity.Read<PrefabGUID>().Equals(StashServices.ExternalInventoryPrefab)) continue;
+
+                        var checkInventoryBuffer = attachedEntity.ReadBuffer<InventoryBuffer>();
+                        foreach (var inventoryEntry in checkInventoryBuffer)
                         {
-                            if (!external.Entity.Has<PrefabGUID>()) continue;
-                            else if (external.Entity.Read<PrefabGUID>().Equals(UpdateRefiningSystemPatch.externalInventoryPrefab))
+                            var item = inventoryEntry.ItemType;
+                            if (item.GuidHash == 0) continue;
+                            if (!matches.TryGetValue(item, out var itemMatches))
                             {
-                                externalInventory = external.Entity;
-                                break;
+                                itemMatches = new List<(Entity stash, Entity inventory)>();
+                                matches[item] = itemMatches;
                             }
-                        }
-                        if (externalInventory.Equals(Entity.Null)) continue;
-                        if (serverGameManager.TryGetBuffer<InventoryBuffer>(externalInventory, out var inventoryBuffer) && !inventoryBuffer.IsEmpty)
-                        {
-                            for (int i = 0; i < inventoryBuffer.Length; i++)
-                            {
-                                PrefabGUID item = inventoryBuffer[i].ItemType;
-                                if (item.GuidHash == 0) continue;
-                                if (!matches.ContainsKey(item)) matches[item] = [];
-                                else if (matches.TryGetValue(item, out var list) && list.Any(entry => entry.station == stash)) continue;
-                                matches[item].Add((stash, serverGameManager.GetInventoryItemCount(externalInventory, item)));
-                            }
-                        }
-                        else
-                        {
-                            //Core.Log.LogInfo("No inventoryBuffer found for external inventory.");
+                            else if (itemMatches.Any(x => x.stash == stash)) continue;
+                            itemMatches.Add((stash, attachedEntity));
                         }
                     }
-                    else
+                }
+                if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, servant, out Entity inventory))
+                    return;
+
+                if (!serverGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var inventoryBuffer))
+                    return;
+                for (int i = 0; i < inventoryBuffer.Length; i++)
+                {
+                    var item = inventoryBuffer[i].ItemType;
+                    if (!matches.TryGetValue(item, out var stashEntries) && !missionStash.stash.Equals(Entity.Null))
                     {
-                        //Core.Log.LogInfo("No AttachedBuffer found for entity.");
+                        int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
+                        TransferItems(serverGameManager, inventory, missionStash.inventory, item, transferAmount);
+                        continue;
+                    }
+
+                    foreach (var stashEntry in stashEntries)
+                    {
+                        int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
+                        TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
                     }
                 }
             }
             catch (Exception e)
             {
-                Core.Log.LogError($"Exited UpdateRefiningSystem matchesProcessing early: {e}");
+                Core.Log.LogError($"Exited StashServantInventory early: {e}");
             }
             finally
             {
-                stashes.Dispose();
-            }
-            // get player inventory and find allied owned stashes in same territory with item matches
-            if (InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, servant, out Entity inventory))
-            {
-                if (serverGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var buffer))
-                {
-                    for (int i = 0; i < buffer.Length; i++)
-                    {
-                        var item = buffer[i].ItemType;
-                        if (item.GuidHash == 0) continue;
-                        if (matches.TryGetValue(item, out List<(Entity, int)> stashEntities))
-                        {
-                            foreach (var stash in stashEntities)
-                            {
-                                if (!Utilities.SharedHeartConnection(servant, stash.Item1))
-                                {
-                                    Core.Log.LogInfo("Servant doesn't have the same heart connection, skipping stash...");
-                                    continue;
-                                }
-
-                                if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, stash.Item1, out Entity stashInventory))
-                                {
-                                    //Core.Log.LogInfo("No stash inventory entity found for stash during auto-stashing.");
-                                    continue;
-                                }
-
-                                int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                                Utilities.TransferItems(serverGameManager, inventory, stashInventory, item, transferAmount);
-                            }
-                        }
-                        else
-                        {
-                            // if no match found for autostash, send to 'missions' stash
-                            if (!missionStash.Equals(Entity.Null))
-                            {
-                                if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, missionStash, out Entity missionInventory))
-                                {
-                                    Core.Log.LogInfo("No inventory entity found for missions stash...");
-                                    continue;
-                                }
-
-                                int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                                Utilities.TransferItems(serverGameManager, inventory, missionInventory, item, transferAmount);
-                            }
-                            else
-                            {
-                                Core.Log.LogInfo("No matches and no missions stash found, skipping...");
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Core.Log.LogInfo($"No inventory buffer found for servant...");
-                }
-            }
-            else
-            {
-                Core.Log.LogInfo($"No inventory entity found for servant...");
+                matches.Dispose();
             }
         }
 
