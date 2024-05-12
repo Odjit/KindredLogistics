@@ -12,10 +12,11 @@
     <InformationalVersion>0.1.6+2.Branch.main.Sha.62bb8fcf39ee2ebe62410e48ec8f8fdc72e85b10</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Data\itemNames.json" />
+    <None Remove="Data\prefabNames.json" />
     <None Remove="Localization\English.json" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Data\PrefabNames.json" />
     <EmbeddedResource Include="Localization\English.json" />
   </ItemGroup>
   <ItemGroup>
@@ -537,9 +538,6 @@
 			<HintPath>..\interop\__Generated.dll</HintPath>
 		</Reference>
 	</ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Data\ItemNames.json" />
-  </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="copy &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\VRisingDedicatedServer\BepInEx\plugins&quot; " />
   </Target>
