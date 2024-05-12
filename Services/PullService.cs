@@ -69,8 +69,6 @@ namespace KindredLogistics.Services
 
             var castleWorkstation = workstation.Read<CastleWorkstation>();
             var recipeReduction = castleWorkstation.WorkstationLevel.HasFlag(WorkstationLevel.MatchingFloor) ? 0.75f : 1f;
-            //Core.Log.LogInfo($"{castleWorkstation.WorkstationLevel} | {recipeReduction}");
-            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching crafting materials for {recipeName}.");
 
             var requirements = recipeEntity.ReadBuffer<RecipeRequirementBuffer>();
             var stashes = UpdateRefiningSystemPatch.stashesQuery.ToEntityArray(Allocator.TempJob);
@@ -82,17 +80,41 @@ namespace KindredLogistics.Services
                     return;
                 }
 
+                var workstationInventory = Entity.Null;
+                if (serverGameManager.TryGetBuffer<AttachedBuffer>(workstation, out var workStationBuffer))
+                {
+                    foreach (var attachedBuffer in workStationBuffer)
+                    {
+                        var attachedEntity = attachedBuffer.Entity;
+                        if (!attachedEntity.Has<PrefabGUID>()) continue;
+                        if (!attachedEntity.Read<PrefabGUID>().Equals(StashService.ExternalInventoryPrefab)) continue;
+
+                        workstationInventory = attachedEntity;
+                        break;
+                    }
+                }
+
+                var fetchedMaterials = false;
                 foreach (var requirement in requirements)
                 {
                     var currentAmount = serverGameManager.GetInventoryItemCount(inventory, requirement.Guid);
+                    if (!workstationInventory.Equals(Entity.Null))
+                        currentAmount += serverGameManager.GetInventoryItemCount(workstationInventory, requirement.Guid);
                     var requiredAmount = Mathf.RoundToInt(requirement.Amount * recipeReduction);
                     if (currentAmount >= requiredAmount) continue;
+
+                    if (!fetchedMaterials)
+                    {
+                        fetchedMaterials = true;
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching crafting materials for {recipeName}.");
+                    }
 
                     requiredAmount -= currentAmount;
 
                     foreach (var stash in Core.Stash.GetAllAlliedStashesOnTerritory(character))
                     {
                         if (requiredAmount <= 0) break;
+                        if (stash.Equals(workstation)) continue;
                         if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                             continue;
                         foreach (var attachedBuffer in buffer)
@@ -104,18 +126,13 @@ namespace KindredLogistics.Services
                             var stashItemCount = serverGameManager.GetInventoryItemCount(attachedEntity, requirement.Guid);
 
                             if (stashItemCount == 0) continue;
-
-                            if (stashItemCount >= requiredAmount)
-                            {
-                                Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requirement.Guid, requiredAmount);
-                                requiredAmount = 0;
+                            var transferAmount = Mathf.Min(stashItemCount, requiredAmount);
+                            Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requirement.Guid, transferAmount);
+                            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"{transferAmount}x {requirement.Guid.PrefabName()} fetched from {stash.EntityName()}.");
+                            
+                            requiredAmount -= transferAmount;
+                            if (requiredAmount <= 0)
                                 break;
-                            }
-                            else
-                            {
-                                Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requirement.Guid, stashItemCount);
-                                requiredAmount -= stashItemCount;
-                            }
                         }
                     }
 
@@ -123,6 +140,10 @@ namespace KindredLogistics.Services
                     {
                         ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find {requiredAmount}x {requirement.Guid.PrefabName()}.");
                     }
+                }
+                if (!fetchedMaterials)
+                {
+                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Already had materials for crafting {recipeName}.");
                 }
             }
             catch (Exception e)

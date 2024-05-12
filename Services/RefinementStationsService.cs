@@ -1,15 +1,10 @@
-﻿using ProjectM.CastleBuilding;
+﻿using Il2CppInterop.Runtime;
 using ProjectM;
-using System;
+using ProjectM.CastleBuilding;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Entities;
-using Il2CppInterop.Runtime;
-using System.Collections;
-using Unity.Collections;
 using System.Text.RegularExpressions;
+using Unity.Collections;
+using Unity.Entities;
 
 namespace KindredLogistics.Services
 {

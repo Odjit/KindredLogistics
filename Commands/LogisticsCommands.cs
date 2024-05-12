@@ -121,5 +121,11 @@ namespace Logistics.Commands
             else
                 ctx.Reply($"Pulled {quantity - amountRemaining}x {item.prefab.PrefabName()} from containers. Couldn't find {amountRemaining}x");
         }
+
+        [Command(name: "finditem", shortHand: "fi", description: "Finds the specified item in containers")]
+        public static void FindItem(ChatCommandContext ctx, FoundItem item)
+        {
+            Core.Stash.ReportWhereItemIsLocated(ctx.Event.SenderCharacterEntity, item.prefab);
+        }
     }
 }

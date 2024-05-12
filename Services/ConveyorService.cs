@@ -77,7 +77,7 @@ namespace KindredLogistics.Services
                     foreach (var requirement in requirements)
                     {
                         // Always desire 2x the amount so the moment it finishes it immediately starts again
-                        var amountWanted = Mathf.RoundToInt(2 * requirement.Amount * matchFloorReduction * Core.ServerGameSettingsSystem.Settings.RefinementCostModifier);
+                        var amountWanted = 2 * Mathf.RoundToInt(requirement.Amount * matchFloorReduction);
 
                         // Check how much is already in the inventory
                         int has = 0;

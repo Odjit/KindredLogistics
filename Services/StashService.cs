@@ -2,6 +2,7 @@
 using ProjectM;
 using ProjectM.CastleBuilding;
 using ProjectM.Network;
+using ProjectM.Scripting;
 using Stunlock.Core;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine.TextCore.Text;
 
 namespace KindredLogistics.Services
 {
@@ -107,16 +109,27 @@ namespace KindredLogistics.Services
         {
             var userEntity = charEntity.Read<PlayerCharacter>().UserEntity;
             var user = userEntity.Read<User>();
+
+            var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
+            if (territoryIndex == -1)
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Not on a territory so unable to stash");
+                return;
+            }
+
             ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Stashing your inventory to storage on your current territory");
 
             var serverGameManager = Core.ServerGameManager;
             var matches = new Dictionary<PrefabGUID, List<(Entity stash, Entity inventory)>>(capacity: 100);
+            var foundStash = false;
             try
             {
                 foreach (var stash in GetAllAlliedStashesOnTerritory(charEntity))
                 {
                     if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                         continue;
+
+                    foundStash = true;
 
                     foreach (var attachedBuffer in buffer)
                     {
@@ -145,6 +158,12 @@ namespace KindredLogistics.Services
                 Core.Log.LogError($"Exited UpdateRefiningSystem matchesProcessing early: {e}");
             }
 
+            if(!foundStash)
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "No stashes found that you can access on your current territory");
+                return;
+            }
+
             // get player inventory and find allied owned stashes in same territory with item matches
             if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, charEntity, out Entity inventory))
                 return;
@@ -166,6 +185,55 @@ namespace KindredLogistics.Services
                         $"Stashed {transferAmount}x {item.PrefabName()} to {stashEntry.stash.EntityName()}");
                 }
             }
+        }
+
+        public void ReportWhereItemIsLocated(Entity charEntity, PrefabGUID item)
+        {
+            var userEntity = charEntity.Read<PlayerCharacter>().UserEntity;
+            var user = userEntity.Read<User>();
+
+            var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
+            if (territoryIndex == -1)
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Not on a territory so unable to search for an item");
+                return;
+            }
+
+            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Find Item Report\n--------------------------------");
+            var serverGameManager = Core.ServerGameManager;
+            var foundStash = false;
+            var totalFound = 0;
+            var itemName = item.PrefabName();
+            foreach (var stash in GetAllAlliedStashesOnTerritory(charEntity))
+            {
+                if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
+                    continue;
+
+                foundStash = true;
+
+                foreach (var attachedBuffer in buffer)
+                {
+                    var attachedEntity = attachedBuffer.Entity;
+                    if (!attachedEntity.Has<PrefabGUID>()) continue;
+                    if (!attachedEntity.Read<PrefabGUID>().Equals(ExternalInventoryPrefab)) continue;
+
+                    var amountFound = serverGameManager.GetInventoryItemCount(attachedEntity, item);
+                    if (amountFound > 0)
+                    {
+                        totalFound += amountFound;
+                        ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
+                                                       $"{amountFound}x {item.PrefabName()} found in {stash.EntityName()}");
+                    }
+                }
+            }
+
+            if (!foundStash)
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "No stashes found that you can access on your current territory");
+                return;
+            }
+
+            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, $"Total {itemName} found: {totalFound}");
         }
     }
 }
