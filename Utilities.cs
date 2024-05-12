@@ -1,5 +1,6 @@
 ﻿using Il2CppInterop.Runtime;
 using KindredLogistics.Patches;
+using KindredLogistics.Services;
 using ProjectM;
 using ProjectM.CastleBuilding;
 using ProjectM.Network;
@@ -43,7 +44,7 @@ namespace KindredLogistics
             (Entity stash, Entity inventory) missionStash = (Entity.Null, Entity.Null);
             try
             {
-                foreach (Entity stash in StashService.GetAllAlliedStashesOnTerritory(servant))
+                foreach (Entity stash in Core.Stash.GetAllAlliedStashesOnTerritory(servant))
                 {
                     if (stash.Read<NameableInteractable>().Name.ToString().ToLower().Contains("spoils") && missionStash.stash.Equals(Entity.Null)) // store mission stash for later
                     {
