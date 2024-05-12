@@ -1,6 +1,8 @@
 using BepInEx.Logging;
+using KindredLogistics.Commands.Converters;
 using KindredLogistics.Services;
 using ProjectM;
+using ProjectM.Network;
 using ProjectM.Scripting;
 using Unity.Entities;
 
@@ -31,6 +33,8 @@ internal static class Core
     public static StashService Stash { get; } = new();
     public static TerritoryService TerritoryService { get; internal set; }
 
+    public const int MAX_REPLY_LENGTH = 509;
+
     static bool hasInitialized;
     public static void Initialize()
     {
@@ -47,6 +51,8 @@ internal static class Core
 
         // Now start services that actually do stuff
         ConveyorService = new();
+
+        FoundItemConverter.LoadItemNames();
 
         Core.Log.LogInfo("KindredLogistics initialized");
 

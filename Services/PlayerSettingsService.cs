@@ -6,6 +6,8 @@ namespace KindredLogistics.Services
 {
     internal class PlayerSettingsService
     {
+        const int GLOBAL_PLAYER_ID = 0;
+
         static readonly string CONFIG_PATH = Path.Combine(BepInEx.Paths.ConfigPath, MyPluginInfo.PLUGIN_NAME);
         static readonly string PLAYER_SETTINGS_PATH = Path.Combine(CONFIG_PATH, "playerSettings.json");
 
@@ -28,6 +30,18 @@ namespace KindredLogistics.Services
         public PlayerSettingsService()
         {
             LoadSettings();
+
+            if(!playerSettings.ContainsKey(GLOBAL_PLAYER_ID))
+            {
+                playerSettings[GLOBAL_PLAYER_ID] = new PlayerSettings()
+                {
+                    SortStash = true,
+                    CraftPull = true,
+                    AutoStashMissions = true,
+                    Conveyor = true
+                };
+                SaveSettings();
+            }
         }
 
         void LoadSettings()
@@ -54,10 +68,10 @@ namespace KindredLogistics.Services
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return false;
-            return settings.SortStash;
+            return settings.SortStash && playerSettings[GLOBAL_PLAYER_ID].SortStash;
         }
 
-        public bool ToggleSortStash(ulong playerId)
+        public bool ToggleSortStash(ulong playerId = GLOBAL_PLAYER_ID)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 settings = new PlayerSettings();
@@ -71,10 +85,10 @@ namespace KindredLogistics.Services
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return false;
-            return settings.CraftPull;
+            return settings.CraftPull && playerSettings[GLOBAL_PLAYER_ID].CraftPull;
         }
 
-        public bool ToggleCraftPull(ulong playerId)
+        public bool ToggleCraftPull(ulong playerId = GLOBAL_PLAYER_ID)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 settings = new PlayerSettings();
@@ -91,14 +105,14 @@ namespace KindredLogistics.Services
             return settings.AutoStashMissions;
         }
 
-        public bool ToggleAutoStashMissions(ulong playerId)
+        public bool ToggleAutoStashMissions(ulong playerId = GLOBAL_PLAYER_ID)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 settings = new PlayerSettings();
             settings.AutoStashMissions = !settings.AutoStashMissions;
             playerSettings[playerId] = settings;
             SaveSettings();
-            return settings.AutoStashMissions;
+            return settings.AutoStashMissions && playerSettings[GLOBAL_PLAYER_ID].AutoStashMissions;
         }
 
         public bool IsConveyorEnabled(ulong playerId)
@@ -108,14 +122,14 @@ namespace KindredLogistics.Services
             return settings.Conveyor;
         }
 
-        public bool ToggleConveyor(ulong playerId)
+        public bool ToggleConveyor(ulong playerId = GLOBAL_PLAYER_ID)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 settings = new PlayerSettings();
             settings.Conveyor = !settings.Conveyor;
             playerSettings[playerId] = settings;
             SaveSettings();
-            return settings.Conveyor;
+            return settings.Conveyor && playerSettings[GLOBAL_PLAYER_ID].Conveyor;
         }
 
         public PlayerSettings GetSettings(ulong playerId)
@@ -123,6 +137,11 @@ namespace KindredLogistics.Services
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return new PlayerSettings();
             return settings;
+        }
+
+        public PlayerSettings GetGlobalSettings()
+        {
+            return playerSettings[GLOBAL_PLAYER_ID];
         }
     }
 }

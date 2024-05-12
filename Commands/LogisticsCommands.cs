@@ -1,4 +1,7 @@
 using KindredLogistics;
+using KindredLogistics.Commands.Converters;
+using KindredLogistics.Services;
+using ProjectM.Network;
 using VampireCommandFramework;
 
 namespace Logistics.Commands
@@ -47,13 +50,58 @@ namespace Logistics.Commands
             var SteamID = ctx.Event.User.PlatformId;
 
             var settings = Core.PlayerSettings.GetSettings(SteamID);
+            var globalSettings = Core.PlayerSettings.GetGlobalSettings();
             ctx.Reply("KindredLogistics settings:\n" +
+                      $"SortStash{(globalSettings.SortStash ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.SortStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"CraftPull{(globalSettings.CraftPull ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.CraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"AutoStashMissions{(globalSettings.AutoStashMissions ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
+                      );
+        }  
+    }
+
+    [CommandGroup(name: "logisticsglobal", "lg")]
+    public static class LogisticsGlobal
+    {
+
+        [Command(name: "sortStash", shortHand: "ss", usage: ".lg ss", description: "Toggles autostashing on double clicking sort button for player.", adminOnly: true)]
+        public static void TogglePlayerAutoStash(ChatCommandContext ctx)
+        {
+            var autoStash = Core.PlayerSettings.ToggleSortStash();
+            ctx.Reply($"Global SortStash is {(autoStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
+        [Command(name: "craftPull", shortHand: "cr", usage: ".lg cr", description: "Toggles right-clicking on recipes for missing ingredients.", adminOnly: true)]
+        public static void TogglePlayerAutoPull(ChatCommandContext ctx)
+        {
+            var autoPull = Core.PlayerSettings.ToggleCraftPull();
+            ctx.Reply($"CraftPull is {(autoPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+        [Command(name: "autoStashMissions", shortHand: "asm", usage: ".lg asm", description: "Toggles autostashing for servant missions.", adminOnly: true)]
+        public static void ToggleServantAutoStash(ChatCommandContext ctx)
+        {
+            var autoStashMissions = Core.PlayerSettings.ToggleAutoStashMissions();
+            ctx.Reply($"Global AutoStash for missions is {(autoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
+        [Command(name: "conveyor", shortHand: "co", usage: ".lg co", description: "Toggles the ability of sender/receiver's to move items around.", adminOnly: true)]
+        public static void ToggleConveyor(ChatCommandContext ctx)
+        {
+            var conveyor = Core.PlayerSettings.ToggleConveyor();
+            ctx.Reply($"Global Conveyor is {(conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
+        [Command(name: "settings", shortHand: "s", usage: ".lg s", description: "Displays current settings.", adminOnly: true)]
+        public static void DisplaySettings(ChatCommandContext ctx)
+        {
+            var settings = Core.PlayerSettings.GetGlobalSettings();
+            ctx.Reply("KindredLogistics Global settings:\n" +
                       $"SortStash: {(settings.SortStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"CraftPull: {(settings.CraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"AutoStashMissions: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Conveyor: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
                       );
-        }  
+        }
     }
 
     public static class AdditionalCommands
@@ -62,6 +110,16 @@ namespace Logistics.Commands
         public static void StashInventory(ChatCommandContext ctx)
         {
             Core.Stash.StashCharacterInventory(ctx.Event.SenderCharacterEntity);
+        }
+
+        [Command(name: "pull", description: "Pulls specified item from containers.")]
+        public static void PullItem(ChatCommandContext ctx, FoundItem item, int quantity=1)
+        {
+            var amountRemaining = PullService.PullItem(ctx.Event.SenderCharacterEntity, item.prefab, quantity);
+            if(amountRemaining <= 0)
+                ctx.Reply($"Pulled {quantity}x {item.prefab.PrefabName()} from containers.");
+            else
+                ctx.Reply($"Pulled {quantity - amountRemaining}x {item.prefab.PrefabName()} from containers. Couldn't find {amountRemaining}x");
         }
     }
 }
