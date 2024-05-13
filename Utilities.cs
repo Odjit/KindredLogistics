@@ -1,5 +1,4 @@
 ﻿using Il2CppInterop.Runtime;
-using KindredLogistics.Patches;
 using KindredLogistics.Services;
 using ProjectM;
 using ProjectM.CastleBuilding;
@@ -9,7 +8,6 @@ using Stunlock.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Collections;
 using Unity.Entities;
 
 namespace KindredLogistics
