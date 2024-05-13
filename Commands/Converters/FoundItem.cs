@@ -104,7 +104,7 @@ class FoundItemConverter : CommandArgumentConverter<FoundItem>
         }
     }
 
-    private static bool TryGet(string input, out FoundItem item)
+    static bool TryGet(string input, out FoundItem item)
     {
         if (itemNamesToPrefabs.TryGetValue(input, out var prefab))
         {

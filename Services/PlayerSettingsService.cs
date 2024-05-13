@@ -11,7 +11,7 @@ namespace KindredLogistics.Services
         static readonly string CONFIG_PATH = Path.Combine(BepInEx.Paths.ConfigPath, MyPluginInfo.PLUGIN_NAME);
         static readonly string PLAYER_SETTINGS_PATH = Path.Combine(CONFIG_PATH, "playerSettings.json");
 
-        private static readonly JsonSerializerOptions prettyJsonOptions = new()
+        static readonly JsonSerializerOptions prettyJsonOptions = new()
         {
             WriteIndented = true,
             IncludeFields = true

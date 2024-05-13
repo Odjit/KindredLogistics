@@ -10,7 +10,7 @@ namespace KindredLogistics;
 
 public static class ECSExtensions
 {
-    private static EntityManager EntityManager { get; } = Core.Server.EntityManager;
+    static EntityManager EntityManager { get; } = Core.Server.EntityManager;
    
     public static unsafe void Write<T>(this Entity entity, T componentData) where T : struct
     {
