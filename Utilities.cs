@@ -82,13 +82,14 @@ namespace KindredLogistics
                 for (int i = 0; i < inventoryBuffer.Length; i++)
                 {
                     var item = inventoryBuffer[i].ItemType;
-                    if (!matches.TryGetValue(item, out var stashEntries) && !missionStash.stash.Equals(Entity.Null))
+                    if (!matches.TryGetValue(item, out var stashEntries))
                     {
+                        if (missionStash.stash.Equals(Entity.Null)) continue;
                         int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
                         TransferItems(serverGameManager, inventory, missionStash.inventory, item, transferAmount);
                         continue;
                     }
-
+                    
                     foreach (var stashEntry in stashEntries)
                     {
                         int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
