@@ -17,6 +17,7 @@ internal static class Core
     public static PrefabCollectionSystem PrefabCollectionSystem { get; internal set; }
     public static ServerGameSettingsSystem ServerGameSettingsSystem { get; internal set; }
     public static ServerScriptMapper ServerScriptMapper { get; internal set; }
+    public static DebugEventsSystem DebugEventsSystem { get; internal set; }
     public static double ServerTime => ServerGameManager.ServerTime;
     public static ServerGameManager ServerGameManager => ServerScriptMapper.GetServerGameManager();
 
@@ -42,6 +43,7 @@ internal static class Core
 
         PrefabCollectionSystem = Server.GetExistingSystemManaged<PrefabCollectionSystem>();
         ServerGameSettingsSystem = Server.GetExistingSystemManaged<ServerGameSettingsSystem>();
+        DebugEventsSystem = Server.GetExistingSystemManaged<DebugEventsSystem>();
         ServerScriptMapper = Server.GetExistingSystemManaged<ServerScriptMapper>();
 
         // Initialize utility services
