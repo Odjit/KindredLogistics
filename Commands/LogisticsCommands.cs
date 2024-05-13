@@ -1,7 +1,6 @@
 using KindredLogistics;
 using KindredLogistics.Commands.Converters;
 using KindredLogistics.Services;
-using ProjectM.Network;
 using VampireCommandFramework;
 
 namespace Logistics.Commands

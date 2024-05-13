@@ -2,7 +2,6 @@
 using ProjectM;
 using ProjectM.CastleBuilding;
 using ProjectM.Network;
-using ProjectM.Scripting;
 using Stunlock.Core;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine.TextCore.Text;
 
 namespace KindredLogistics.Services
 {
@@ -114,7 +112,7 @@ namespace KindredLogistics.Services
             var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
             if (territoryIndex == -1)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash outside allied territories!");
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash outside territories!");
                 return;
             }
 

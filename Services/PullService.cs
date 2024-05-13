@@ -146,12 +146,12 @@ namespace KindredLogistics.Services
 
                     if (requiredAmount > 0)
                     {
-                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find <color=white>{requiredAmount}</color>x <color=green>{requirement.Guid.PrefabName()}</color> for recipe...");
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find <color=white>{requiredAmount}</color>x <color=green>{requirement.Guid.PrefabName()}</color> for the recipe.");
                     }
                 }
                 if (!fetchedMaterials)
                 {
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Already have materials for crafting <color=yellow>{recipeName}</color>!");
+                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Already have the materials for crafting <color=yellow>{recipeName}</color>!");
                 }
             }
             catch (Exception e)
