@@ -296,3 +296,4 @@ build/
 dist/
 /KindredCommands.sln
 /*.sln
+/TODO.txt
