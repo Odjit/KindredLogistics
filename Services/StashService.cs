@@ -1,25 +1,24 @@
 ﻿using Il2CppInterop.Runtime;
-using Il2CppSystem;
 using ProjectM;
 using ProjectM.CastleBuilding;
 using ProjectM.Network;
+using ProjectM.Shared;
 using Stunlock.Core;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Unity.Collections;
 using Unity.Entities;
-using static VCF.Core.Basics.RoleCommands;
 
 namespace KindredLogistics.Services
 {
     internal class StashService
     {
-        private const int ACTION_BAR_SLOTS = 8;
-        private const string SKIP_SUFFIX = "''";
+        const int ACTION_BAR_SLOTS = 8;
+        const string SKIP_SUFFIX = "''";
+        const float FIND_SPOTLIGHT_DURATION = 15f;
 
-        private static readonly ComponentType[] StashQuery =
+        static readonly ComponentType[] StashQuery =
             [
                 ComponentType.ReadOnly(Il2CppType.Of<InventoryOwner>()),
                 ComponentType.ReadOnly(Il2CppType.Of<CastleHeartConnection>()),
@@ -28,12 +27,15 @@ namespace KindredLogistics.Services
             ];
 
         public static readonly PrefabGUID ExternalInventoryPrefab = new(1183666186);
+        static readonly PrefabGUID findContainerSpotlightPrefab = new(-1466712470);
 
         public delegate bool StashFilter(Entity station);
 
-        private EntityQuery stashQuery;
-        private readonly Regex receiverRegex;
-        private readonly Regex senderRegex;
+        EntityQuery stashQuery;
+        readonly Regex receiverRegex;
+        readonly Regex senderRegex;
+
+        Dictionary<Entity, (double expirationTime, List<Entity> targetStashes)> activeSpotlights = [];
 
         public StashService()
         {
@@ -82,7 +84,7 @@ namespace KindredLogistics.Services
             }
         }
 
-        private IEnumerable<(int territoryIndex, int group, Entity station)> GetAllGroupStations(Regex groupRegex, StashFilter filter = null)
+        IEnumerable<(int territoryIndex, int group, Entity station)> GetAllGroupStations(Regex groupRegex, StashFilter filter = null)
         {
             var stashArray = stashQuery.ToEntityArray(Allocator.Temp);
             try
@@ -109,7 +111,7 @@ namespace KindredLogistics.Services
         public void StashCharacterInventory(Entity charEntity)
         {
             var userEntity = charEntity.Read<PlayerCharacter>().UserEntity;
-            var user = userEntity.Read<ProjectM.Network.User>();
+            var user = userEntity.Read<User>();
 
             var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
             if (territoryIndex == -1)
@@ -192,7 +194,9 @@ namespace KindredLogistics.Services
         public void ReportWhereItemIsLocated(Entity charEntity, PrefabGUID item)
         {
             var userEntity = charEntity.Read<PlayerCharacter>().UserEntity;
-            var user = userEntity.Read<ProjectM.Network.User>();
+            var user = userEntity.Read<User>();
+
+            ClearSpotlights(userEntity);
 
             var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
             if (territoryIndex == -1)
@@ -225,7 +229,7 @@ namespace KindredLogistics.Services
                         totalFound += amountFound;
                         ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
                                                        $"<color=white>{amountFound}</color>x <color=green>{item.PrefabName()}</color> found in <color=#FFC0CB>{stash.EntityName()}</color>");
-                        HandleSpotlight(stash, userEntity);
+                        AddSpotlight(stash, userEntity);
                     }
                 }
             }
@@ -239,31 +243,32 @@ namespace KindredLogistics.Services
             ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, $"Total <color=green>{itemName}</color> found: <color=white>{totalFound}</color>");
         }
 
-        private static void HandleSpotlight(Entity stash, Entity userEntity)
+        void ClearSpotlights(Entity userEntity)
         {
-            ApplyBuffDebugEvent buff = new()
-            {
-                BuffPrefabGUID = stashSpotlight,
-            };
-            FromCharacter fromCharacter = new()
-            {
-                Character = stash,
-                User = userEntity
-            };
+            if (!activeSpotlights.TryGetValue(userEntity, out var spotlight))
+                return;
+            activeSpotlights.Remove(userEntity);
 
-            Core.DebugEventsSystem.ApplyBuff(fromCharacter, buff);
-            if (Core.ServerGameManager.TryGetBuff(stash, stashSpotlight.ToIdentifier(), out Entity buffEntity))
+            if (spotlight.expirationTime < Core.ServerTime)
+                return;
+
+            foreach (var stash in spotlight.targetStashes)
             {
-                LifeTime lifeTime = new()
-                {
-                    Duration = stashSpotlightDuration,
-                    EndAction = LifeTimeEndAction.Destroy
-                };
-                Core.EntityManager.SetComponentData(buffEntity, lifeTime);
+                Buffs.RemoveBuff(stash, findContainerSpotlightPrefab);
             }
         }
 
-        private static readonly float stashSpotlightDuration = 15f;
-        private static readonly PrefabGUID stashSpotlight = new(-1466712470); // buff to highlight stashes
+        void AddSpotlight(Entity stash, Entity userEntity)
+        {
+            if(!activeSpotlights.TryGetValue(userEntity, out var spotlight))
+            {
+                spotlight.expirationTime = Core.ServerTime + FIND_SPOTLIGHT_DURATION;
+                spotlight.targetStashes = [];
+                activeSpotlights.Add(userEntity, spotlight);
+            }
+            spotlight.targetStashes.Add(stash);
+
+            Buffs.RemoveAndAddBuff(userEntity, stash, findContainerSpotlightPrefab, FIND_SPOTLIGHT_DURATION);
+        }
     }
 }

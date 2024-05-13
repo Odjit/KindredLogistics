@@ -1,10 +1,14 @@
 using BepInEx.Logging;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 using KindredLogistics.Commands.Converters;
 using KindredLogistics.Services;
 using ProjectM;
 using ProjectM.Network;
+using ProjectM.Physics;
 using ProjectM.Scripting;
+using System.Collections;
 using Unity.Entities;
+using UnityEngine;
 
 namespace KindredLogistics;
 
@@ -37,6 +41,9 @@ internal static class Core
     public const int MAX_REPLY_LENGTH = 509;
 
     static bool hasInitialized;
+
+    static MonoBehaviour monoBehaviour;
+
     public static void Initialize()
     {
         if (hasInitialized) return;
@@ -73,4 +80,16 @@ internal static class Core
 
 		return null;
 	}
+
+    public static void StartCoroutine(IEnumerator routine)
+    {
+        if (monoBehaviour == null)
+        {
+            var go = new GameObject("KindredLogistics");
+            monoBehaviour = go.AddComponent<IgnorePhysicsDebugSystem>();
+            Object.DontDestroyOnLoad(go);
+        }
+
+        monoBehaviour.StartCoroutine(routine.WrapToIl2Cpp());
+    }
 }
