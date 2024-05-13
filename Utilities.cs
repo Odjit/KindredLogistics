@@ -97,12 +97,13 @@ namespace KindredLogistics
                     {
                         int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
                         TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
+                        int remainingAmount = serverGameManager.GetInventoryItemCount(inventory, item);
+                        if (remainingAmount > 0 && !missionStash.stash.Equals(Entity.Null))
+                        {
+                            TransferItems(serverGameManager, inventory, missionStash.inventory, item, remainingAmount);
+                        }
                     }
-                    int remainingAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                    if (remainingAmount > 0 && !missionStash.stash.Equals(Entity.Null))
-                    {
-                        TransferItems(serverGameManager, inventory, missionStash.inventory, item, remainingAmount);
-                    }
+                    
                 }
             }
             catch (Exception e)

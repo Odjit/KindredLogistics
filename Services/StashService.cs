@@ -13,11 +13,11 @@ namespace KindredLogistics.Services
 {
     internal class StashService
     {
-        const int ACTION_BAR_SLOTS = 8;
-        const string SKIP_SUFFIX = "''";
-        const float FIND_SPOTLIGHT_DURATION = 15f;
+        private const int ACTION_BAR_SLOTS = 8;
+        private const string SKIP_SUFFIX = "''";
+        private const float FIND_SPOTLIGHT_DURATION = 15f;
 
-        static readonly ComponentType[] StashQuery =
+        private static readonly ComponentType[] StashQuery =
             [
                 ComponentType.ReadOnly(Il2CppType.Of<InventoryOwner>()),
                 ComponentType.ReadOnly(Il2CppType.Of<CastleHeartConnection>()),
@@ -26,15 +26,15 @@ namespace KindredLogistics.Services
             ];
 
         public static readonly PrefabGUID ExternalInventoryPrefab = new(1183666186);
-        static readonly PrefabGUID findContainerSpotlightPrefab = new(-1466712470);
+        private static readonly PrefabGUID findContainerSpotlightPrefab = new(-1466712470);
 
         public delegate bool StashFilter(Entity station);
 
-        EntityQuery stashQuery;
-        readonly Regex receiverRegex;
-        readonly Regex senderRegex;
+        private EntityQuery stashQuery;
+        private readonly Regex receiverRegex;
+        private readonly Regex senderRegex;
 
-        Dictionary<Entity, (double expirationTime, List<Entity> targetStashes)> activeSpotlights = [];
+        private Dictionary<Entity, (double expirationTime, List<Entity> targetStashes)> activeSpotlights = [];
 
         public StashService()
         {
@@ -83,7 +83,7 @@ namespace KindredLogistics.Services
             }
         }
 
-        IEnumerable<(int territoryIndex, int group, Entity station)> GetAllGroupStations(Regex groupRegex, StashFilter filter = null)
+        private IEnumerable<(int territoryIndex, int group, Entity station)> GetAllGroupStations(Regex groupRegex, StashFilter filter = null)
         {
             var stashArray = stashQuery.ToEntityArray(Allocator.Temp);
             try
@@ -174,10 +174,13 @@ namespace KindredLogistics.Services
             if (!serverGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var inventoryBuffer))
                 return;
 
+            
             for (int i = ACTION_BAR_SLOTS; i < inventoryBuffer.Length; i++)
             {
+                bool transferFlag = false;
                 var item = inventoryBuffer[i].ItemType;
                 if (!matches.TryGetValue(item, out var stashEntries)) continue;
+
 
                 foreach (var stashEntry in stashEntries)
                 {
@@ -186,9 +189,17 @@ namespace KindredLogistics.Services
                     transferAmount = Utilities.TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
                     if (transferAmount > 0)
                     {
+                        transferFlag = true;
                         ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
                             $"Stashed <color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stashEntry.stash.EntityName()}</color>");
                     }
+                }
+                
+                int remainingAmount = serverGameManager.GetInventoryItemCount(inventory, item);
+                if (remainingAmount > 0 && transferFlag)
+                {
+                    ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
+                                               $"Unable to stash <color=white>{remainingAmount}</color>x <color=green>{item.PrefabName()}</color> due to insufficient space in stashes!");
                 }
             }
         }
@@ -245,7 +256,7 @@ namespace KindredLogistics.Services
             ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, $"Total <color=green>{itemName}</color> found: <color=white>{totalFound}</color>");
         }
 
-        void ClearSpotlights(Entity userEntity)
+        private void ClearSpotlights(Entity userEntity)
         {
             if (!activeSpotlights.TryGetValue(userEntity, out var spotlight))
                 return;
@@ -260,7 +271,7 @@ namespace KindredLogistics.Services
             }
         }
 
-        void AddSpotlight(Entity stash, Entity userEntity)
+        private void AddSpotlight(Entity stash, Entity userEntity)
         {
             if (!activeSpotlights.TryGetValue(userEntity, out var spotlight))
             {
