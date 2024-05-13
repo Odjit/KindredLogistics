@@ -109,5 +109,6 @@ public static class ECSExtensions
         EntityManager.RemoveComponent(entity, ct);
     }
     
+
 }
 

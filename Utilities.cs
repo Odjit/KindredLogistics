@@ -40,7 +40,7 @@ namespace KindredLogistics
         public static void StashServantInventory(Entity servant)
         {
             var serverGameManager = Core.ServerGameManager;
-            var matches = new NativeHashMap<PrefabGUID, List<(Entity stash, Entity inventory)>>(100, Allocator.TempJob);
+            var matches = new Dictionary<PrefabGUID, List<(Entity stash, Entity inventory)>>(capacity: 100);
             (Entity stash, Entity inventory) missionStash = (Entity.Null, Entity.Null);
             try
             {
@@ -50,7 +50,7 @@ namespace KindredLogistics
                     {
                         if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, stash, out Entity missionInventory)) continue;
                         missionStash = (stash, missionInventory);
-                        break;
+                        continue;
                     }
                     if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                         continue;
@@ -68,7 +68,7 @@ namespace KindredLogistics
                             if (item.GuidHash == 0) continue;
                             if (!matches.TryGetValue(item, out var itemMatches))
                             {
-                                itemMatches = new List<(Entity stash, Entity inventory)>();
+                                itemMatches = [];
                                 matches[item] = itemMatches;
                             }
                             else if (itemMatches.Any(x => x.stash == stash)) continue;
@@ -102,10 +102,7 @@ namespace KindredLogistics
             {
                 Core.Log.LogError($"Exited StashServantInventory early: {e}");
             }
-            finally
-            {
-                matches.Dispose();
-            }
+            
         }
 
         public static bool TerritoryCheck(Entity character, Entity target)

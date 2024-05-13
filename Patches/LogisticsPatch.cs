@@ -4,6 +4,7 @@ using ProjectM.Network;
 using ProjectM.Shared.Systems;
 using Stunlock.Core;
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
 
 namespace KindredLogistics.Patches;
@@ -28,7 +29,7 @@ public static class ServantMissionUpdateSystemPatch
     public static void Prefix(ServantMissionUpdateSystem __instance)
     {
         var missions = __instance._TempFinishedMissions;
-        if (missions.IsEmpty || !missions.IsCreated) return;
+        var servants = __instance._TempServantList;
         try
         {
             foreach (var mission in missions)
@@ -36,11 +37,19 @@ public static class ServantMissionUpdateSystemPatch
                 if (mission.MissionOwner.Equals(Entity.Null)) continue;
                 else
                 {
-                    var owner = mission.MissionOwner.Read<EntityOwner>().Owner;
-                    var steamId = owner.Read<PlayerCharacter>().UserEntity.Read<User>().PlatformId;
+                    List<Entity> missionServants = [];
+                    foreach (Entity entity in servants)
+                    {
+                        if (entity.Equals(Entity.Null)) continue;
+                        missionServants.Add(entity);
+                    }
+                    var owner = mission.MissionOwner.Read<UserOwner>().Owner._Entity;
+                    var steamId = owner.Read<User>().PlatformId;
                     if (!Core.PlayerSettings.IsAutoStashMissionsEnabled(steamId)) continue;
-                        
-                    Utilities.StashServantInventory(mission.MissionOwner);
+                    foreach (var servant in missionServants)
+                    {
+                        Utilities.StashServantInventory(servant);
+                    }
                 }
             }
         }
