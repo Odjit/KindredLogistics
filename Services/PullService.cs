@@ -44,7 +44,9 @@ namespace KindredLogistics.Services
                     if (stashItemCount <= 0) continue;
 
                     var transferAmount = Mathf.Min(stashItemCount, quantityRemaining);
-                    Utilities.TransferItems(serverGameManager, attachedEntity, inventory, item, transferAmount);
+                    transferAmount = Utilities.TransferItems(serverGameManager, attachedEntity, inventory, item, transferAmount);
+                    if (transferAmount <= 0)
+                        continue;
                     ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                     quantityRemaining -= transferAmount;
                     if(quantityRemaining <= 0)
@@ -136,7 +138,10 @@ namespace KindredLogistics.Services
                             if (stashItemCount <= 0) continue;
 
                             var transferAmount = Mathf.Min(stashItemCount, requiredAmount);
-                            Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requirement.Guid, transferAmount);
+                            transferAmount = Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requirement.Guid, transferAmount);
+                            if (transferAmount <= 0)
+                                continue;
+
                             ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{requirement.Guid.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                             requiredAmount -= transferAmount;
                             if (requiredAmount <= 0)

@@ -127,18 +127,22 @@ namespace KindredLogistics
             return false;
         }
 
-        public static void TransferItems(ServerGameManager serverGameManager, Entity outputInventory, Entity inputInventory, PrefabGUID itemGuid, int transferAmount)
+        public static int TransferItems(ServerGameManager serverGameManager, Entity outputInventory, Entity inputInventory, PrefabGUID itemGuid, int transferAmount)
         {
             if (serverGameManager.TryRemoveInventoryItem(outputInventory, itemGuid, transferAmount))
             {
-                if (serverGameManager.TryAddInventoryItem(inputInventory, itemGuid, transferAmount))
+                var response = serverGameManager.TryAddInventoryItem(inputInventory, itemGuid, transferAmount);
+                
+                if (response.Result == AddItemResult.Success_Complete)
                 {
                     //Core.Log.LogInfo($"Moved {transferAmount} of {itemGuid.LookupName()} from Input to Output");
+                    return transferAmount;
                 }
                 else
                 {
-                    //Core.Log.LogInfo($"Failed to add {itemGuid.LookupName()}x{transferAmount} to OutputInventory, reverting...");
-                    if (serverGameManager.TryAddInventoryItem(outputInventory, itemGuid, transferAmount))
+                    //Core.Log.LogInfo($"Failed to add {itemGuid.LookupName()}x{transferAmount} to OutputInventory, restoring {response.RemainingAmount}...");
+                    var restoreResponse = serverGameManager.TryAddInventoryItem(outputInventory, itemGuid, response.RemainingAmount);
+                    if (restoreResponse.Result == AddItemResult.Success_Complete)
                     {
                         //Core.Log.LogInfo($"Restored items to original inventory.");
                     }
@@ -146,12 +150,14 @@ namespace KindredLogistics
                     {
                         //Core.Log.LogInfo($"Unable to return items to original inventory.");
                     }
+                    return transferAmount - response.RemainingAmount;
                 }
             }
             else
             {
                 //Core.Log.LogInfo($"Failed to remove {itemGuid.LookupName()}x{transferAmount} from Input");
             }
+            return 0;
         }
     }
 }

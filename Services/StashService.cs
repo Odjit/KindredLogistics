@@ -2,7 +2,6 @@
 using ProjectM;
 using ProjectM.CastleBuilding;
 using ProjectM.Network;
-using ProjectM.Shared;
 using Stunlock.Core;
 using System.Collections.Generic;
 using System.Linq;
@@ -184,9 +183,12 @@ namespace KindredLogistics.Services
                 {
                     int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
                     if (transferAmount == 0) break;
-                    Utilities.TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
-                    ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
-                        $"Stashed <color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stashEntry.stash.EntityName()}</color>");
+                    transferAmount = Utilities.TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
+                    if (transferAmount > 0)
+                    {
+                        ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
+                            $"Stashed <color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stashEntry.stash.EntityName()}</color>");
+                    }
                 }
             }
         }
@@ -260,7 +262,7 @@ namespace KindredLogistics.Services
 
         void AddSpotlight(Entity stash, Entity userEntity)
         {
-            if(!activeSpotlights.TryGetValue(userEntity, out var spotlight))
+            if (!activeSpotlights.TryGetValue(userEntity, out var spotlight))
             {
                 spotlight.expirationTime = Core.ServerTime + FIND_SPOTLIGHT_DURATION;
                 spotlight.targetStashes = [];
