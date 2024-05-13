@@ -47,8 +47,11 @@ namespace KindredLogistics
                     if (stash.Read<NameableInteractable>().Name.ToString().ToLower().Contains("spoils") && missionStash.stash.Equals(Entity.Null)) // store mission stash for later
                     {
                         if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, stash, out Entity missionInventory)) continue;
-                        missionStash = (stash, missionInventory);
-                        continue;
+                        if (!serverGameManager.HasFullInventory(missionInventory))
+                        {
+                            missionStash = (stash, missionInventory);
+                            continue;
+                        }
                     }
                     if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                         continue;
@@ -89,11 +92,16 @@ namespace KindredLogistics
                         TransferItems(serverGameManager, inventory, missionStash.inventory, item, transferAmount);
                         continue;
                     }
-                    
+
                     foreach (var stashEntry in stashEntries)
                     {
                         int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
                         TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
+                    }
+                    int remainingAmount = serverGameManager.GetInventoryItemCount(inventory, item);
+                    if (remainingAmount > 0 && !missionStash.stash.Equals(Entity.Null))
+                    {
+                        TransferItems(serverGameManager, inventory, missionStash.inventory, item, remainingAmount);
                     }
                 }
             }
@@ -101,7 +109,6 @@ namespace KindredLogistics
             {
                 Core.Log.LogError($"Exited StashServantInventory early: {e}");
             }
-            
         }
 
         public static bool TerritoryCheck(Entity character, Entity target)
