@@ -1,7 +1,10 @@
 ![](logo.png)
 # KindredLogistics for V Rising 1.0!
 KindredLogistics is a server modification for V Rising that adds expansive features like stashing, crafting, pulling, searching for items, conveyor system for chain crafting, and auto stashing of servant inventories.
-It is entirely server side, and you can double tep R with your inventory open to stash, or double click the sort button to stash. (Legacy .stash is also available)
+
+It is entirely server side, and you can double tap R with your inventory open to stash, or double click the sort button to stash. (Legacy .stash is also available)
+You can pull items from your chests for crafting by right clicking the recipe in the crafting station!
+Stashing is limited by territories! 
 
 
 This was a collaborative effort from Odjit(Dj) and Zfolmt(Mitch). 
