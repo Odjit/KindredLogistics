@@ -119,8 +119,6 @@ namespace KindredLogistics.Services
                 return;
             }
 
-            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Stashing inventory to storage in your current territory...");
-
             var serverGameManager = Core.ServerGameManager;
             var matches = new Dictionary<PrefabGUID, List<(Entity stash, Entity inventory)>>(capacity: 100);
             var foundStash = false;
@@ -163,7 +161,7 @@ namespace KindredLogistics.Services
 
             if (!foundStash)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "No available stashes found in your current territory!");
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash as no available stashes found in your current territory!");
                 return;
             }
 
@@ -174,6 +172,7 @@ namespace KindredLogistics.Services
             if (!serverGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var inventoryBuffer))
                 return;
 
+            var stashedAnything = false;
             for (int i = ACTION_BAR_SLOTS; i < inventoryBuffer.Length; i++)
             {
                 bool transferFlag = false;
@@ -187,6 +186,11 @@ namespace KindredLogistics.Services
                     transferAmount = Utilities.TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
                     if (transferAmount > 0)
                     {
+                        if(!stashedAnything)
+                        {
+                            stashedAnything = true;
+                            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Stashing inventory to storage in your current territory...");
+                        }
                         transferFlag = true;
                         ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
                             $"Stashed <color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stashEntry.stash.EntityName()}</color>");
@@ -199,6 +203,11 @@ namespace KindredLogistics.Services
                     ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
                                                $"Unable to stash <color=white>{remainingAmount}</color>x <color=green>{item.PrefabName()}</color> due to insufficient space in stashes!");
                 }
+            }
+
+            if(!stashedAnything)
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "No items were able to stash from your inventory!");
             }
         }
 
