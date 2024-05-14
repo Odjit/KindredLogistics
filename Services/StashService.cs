@@ -221,7 +221,7 @@ namespace KindredLogistics.Services
             var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
             if (territoryIndex == -1)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to search for items outside allied territories!");
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to search for items outside territories!");
                 return;
             }
 
