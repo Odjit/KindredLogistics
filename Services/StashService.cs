@@ -178,7 +178,6 @@ namespace KindredLogistics.Services
             Dictionary<PrefabGUID, int> amountUnstashed = [];
             for (int i = ACTION_BAR_SLOTS; i < inventoryBuffer.Length; i++)
             {
-                bool transferFlag = false;
                 var itemEntry = inventoryBuffer[i];
                 var item = itemEntry.ItemType;
                 if (!matches.TryGetValue(item, out var stashEntries)) continue;

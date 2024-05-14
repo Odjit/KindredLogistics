@@ -49,7 +49,7 @@ namespace KindredLogistics.Services
                         continue;
                     ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                     quantityRemaining -= transferAmount;
-                    if(quantityRemaining <= 0)
+                    if (quantityRemaining <= 0)
                         break;
                 }
             }
@@ -100,13 +100,33 @@ namespace KindredLogistics.Services
                     }
                 }
 
-                var fetchedMaterials = false;
+
+                // Determine the multiple of the recipe we currently have then we will try to fetch up to one more recipe's worth of materials
+                var currentRecipeMultiple = -1;
                 foreach (var requirement in requirements)
                 {
                     var currentAmount = serverGameManager.GetInventoryItemCount(inventory, requirement.Guid);
                     if (!workstationInventory.Equals(Entity.Null))
                         currentAmount += serverGameManager.GetInventoryItemCount(workstationInventory, requirement.Guid);
                     var requiredAmount = Mathf.RoundToInt(requirement.Amount * recipeReduction);
+
+                    var itemRecipeMultiple = currentAmount / requiredAmount;
+                    if (currentRecipeMultiple < 0)
+                        currentRecipeMultiple = itemRecipeMultiple;
+                    else
+                        currentRecipeMultiple = Mathf.Min(currentRecipeMultiple, itemRecipeMultiple);
+
+                }
+
+                var fetchedForAnother = true;
+                var fetchedMaterials = false;
+                var desiredRecipeMultiple = currentRecipeMultiple + 1;
+                foreach (var requirement in requirements)
+                {
+                    var currentAmount = serverGameManager.GetInventoryItemCount(inventory, requirement.Guid);
+                    if (!workstationInventory.Equals(Entity.Null))
+                        currentAmount += serverGameManager.GetInventoryItemCount(workstationInventory, requirement.Guid);
+                    var requiredAmount = desiredRecipeMultiple * Mathf.RoundToInt(requirement.Amount * recipeReduction);
                     if (currentAmount >= requiredAmount) continue;
 
                     if (!fetchedMaterials)
@@ -150,13 +170,15 @@ namespace KindredLogistics.Services
 
                     if (requiredAmount > 0)
                     {
+                        fetchedForAnother = false;
                         ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find <color=white>{requiredAmount}</color>x <color=green>{requirement.Guid.PrefabName()}</color> for the recipe.");
                     }
                 }
                 if (!fetchedMaterials)
                 {
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Already have the materials for crafting <color=yellow>{recipeName}</color>!");
+                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find any materials for crafting additional <color=yellow>{recipeName}</color>!");
                 }
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Have enough materials for crafting <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
             }
             catch (Exception e)
             {
