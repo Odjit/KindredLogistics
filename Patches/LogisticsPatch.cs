@@ -9,20 +9,6 @@ using Unity.Entities;
 
 namespace KindredLogistics.Patches;
 
-[HarmonyPatch(typeof(UpdateRefiningSystem), nameof(UpdateRefiningSystem.OnUpdate))]
-public static class UpdateRefiningSystemPatch
-{
-    public static EntityQuery stationsQuery;
-    public static EntityQuery stashesQuery;
-    public static readonly PrefabGUID externalInventoryPrefab = new(1183666186);
-
-    static UpdateRefiningSystemPatch()
-    {
-        stationsQuery = Core.EntityManager.CreateEntityQuery(Utilities.RefinementStationQuery);
-        stashesQuery = Core.EntityManager.CreateEntityQuery(Utilities.StashQuery);
-    }
-}
-
 [HarmonyPatch(typeof(ServantMissionUpdateSystem), nameof(ServantMissionUpdateSystem.OnUpdate))]
 public static class ServantMissionUpdateSystemPatch
 {

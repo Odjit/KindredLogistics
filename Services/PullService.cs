@@ -78,7 +78,6 @@ namespace KindredLogistics.Services
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
 
             var requirements = recipeEntity.ReadBuffer<RecipeRequirementBuffer>();
-            var stashes = UpdateRefiningSystemPatch.stashesQuery.ToEntityArray(Allocator.TempJob);
             try
             {
                 if (!InventoryUtilities.TryGetInventoryEntity(entityManager, character, out Entity inventory))
@@ -162,10 +161,6 @@ namespace KindredLogistics.Services
             catch (Exception e)
             {
                 Core.Log.LogError($"Error in HandleRecipePull: {e}");
-            }
-            finally
-            {
-                stashes.Dispose();
             }
         }
     }
