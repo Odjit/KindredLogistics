@@ -8,6 +8,7 @@ using Stunlock.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Unity.Entities;
 
 namespace KindredLogistics
@@ -166,6 +167,32 @@ namespace KindredLogistics
                 //Core.Log.LogInfo($"Failed to remove {itemGuid.LookupName()}x{transferAmount} from Input");
             }
             return 0;
+        }
+
+        public static AddItemSettings GetAddItemSettings()
+        {
+            AddItemSettings addItemSettings = default;
+            addItemSettings.EntityManager = Core.EntityManager;
+            unsafe
+            {
+                // Pin the buffer object to prevent the GC from moving it while we access it via pointers
+                GCHandle handle = GCHandle.Alloc(Core.ServerGameManager.ItemLookupMap, GCHandleType.Pinned);
+                try
+                {
+                    // Obtain the actual address of the buffer
+                    IntPtr address = handle.AddrOfPinnedObject();
+
+                    // Assuming the buckets pointer is the first field in the buffer struct
+                    // You may need to adjust the offset depending on the actual memory layout
+                    addItemSettings.ItemDataMap = Marshal.ReadIntPtr(address);
+                }
+                finally
+                {
+                    if (handle.IsAllocated)
+                        handle.Free();
+                }
+            }
+            return addItemSettings;
         }
     }
 }

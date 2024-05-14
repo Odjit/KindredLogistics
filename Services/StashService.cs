@@ -172,42 +172,106 @@ namespace KindredLogistics.Services
             if (!serverGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var inventoryBuffer))
                 return;
 
-            var stashedAnything = false;
+            var addItemSettings = Utilities.GetAddItemSettings();
+            HashSet<PrefabGUID> transferredItems = [];
+            Dictionary<(Entity stash, PrefabGUID item), int> amountStashed = [];
+            Dictionary<PrefabGUID, int> amountUnstashed = [];
             for (int i = ACTION_BAR_SLOTS; i < inventoryBuffer.Length; i++)
             {
                 bool transferFlag = false;
-                var item = inventoryBuffer[i].ItemType;
+                var itemEntry = inventoryBuffer[i];
+                var item = itemEntry.ItemType;
                 if (!matches.TryGetValue(item, out var stashEntries)) continue;
 
-                foreach (var stashEntry in stashEntries)
+                var hasItemEntity = !itemEntry.ItemEntity.GetEntityOnServer().Equals(Entity.Null);
+
+                if (hasItemEntity)
                 {
-                    int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                    if (transferAmount == 0) break;
-                    transferAmount = Utilities.TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
-                    if (transferAmount > 0)
+                    var success = false;
+                    foreach (var stashEntry in stashEntries)
                     {
-                        if(!stashedAnything)
+                        var stashInventoryBuffer = stashEntry.inventory.ReadBuffer<InventoryBuffer>();
+                        
+                        for (int j = 0; j < stashInventoryBuffer.Length; j++)
                         {
-                            stashedAnything = true;
-                            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Stashing inventory to storage in your current territory...");
+                            if (!stashInventoryBuffer[j].ItemType.Equals(PrefabGUID.Empty)) continue;
+
+                            transferredItems.Add(item);
+                            stashInventoryBuffer[j] = itemEntry;
+                            if (amountStashed.TryGetValue((stashEntry.stash, item), out var amount))
+                                amountStashed[(stashEntry.stash, item)] = amount + 1;
+                            else
+                                amountStashed[(stashEntry.stash, item)] = 1;
+
+                            InventoryUtilitiesServer.ClearSlot(Core.EntityManager, inventory, i);
+                            success = true;
+                            break;
                         }
-                        transferFlag = true;
-                        ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
-                            $"Stashed <color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stashEntry.stash.EntityName()}</color>");
+                        if (success) break;
+                    }
+                    if(!success)
+                    {
+                        if (amountUnstashed.TryGetValue(item, out var amount))
+                            amountUnstashed[item] = amount + 1;
+                        else
+                            amountUnstashed[item] = 1;
                     }
                 }
-                
-                int remainingAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                if (remainingAmount > 0 && transferFlag)
+                else
                 {
-                    ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
-                                               $"Unable to stash <color=white>{remainingAmount}</color>x <color=green>{item.PrefabName()}</color> due to insufficient space in stashes!");
+                    foreach (var stashEntry in stashEntries)
+                    {
+                        var addItemResponse = InventoryUtilitiesServer.TryAddItem(addItemSettings, stashEntry.inventory, itemEntry);
+
+                        if (!addItemResponse.Success) continue;
+
+                        transferredItems.Add(item);
+                        var transferredAmount = itemEntry.Amount - addItemResponse.RemainingAmount;
+                        if (amountStashed.TryGetValue((stashEntry.stash, item), out var amount))
+                            amountStashed[(stashEntry.stash, item)] = amount + transferredAmount;
+                        else
+                            amountStashed[(stashEntry.stash, item)] = transferredAmount;
+
+                        itemEntry.Amount = addItemResponse.RemainingAmount;
+                        if (!addItemResponse.ItemsRemaining)
+                        {
+                            InventoryUtilitiesServer.ClearSlot(Core.EntityManager, inventory, i);
+                            break;
+                        }
+                    }
+
+                    if (itemEntry.Amount > 0)
+                    {
+                        inventoryBuffer[i] = itemEntry;
+
+                        if (amountUnstashed.TryGetValue(item, out var amount))
+                            amountUnstashed[item] = amount + itemEntry.Amount;
+                        else
+                            amountUnstashed[item] = itemEntry.Amount;
+                    }
                 }
             }
 
-            if(!stashedAnything)
+            if (amountStashed.Count > 0)
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Stashed items from your inventory to the current territory!");
+            }
+            else
             {
                 ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "No items were able to stash from your inventory!");
+            }
+
+            foreach(var ((stash, item), amount) in amountStashed)
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
+                                       $"Stashed <color=white>{amount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stash.EntityName()}</color>");
+            }
+
+            foreach (var stashedItemType in transferredItems)
+            {
+                if (amountUnstashed.TryGetValue(stashedItemType, out var amount))
+                    ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
+                                                       $"Unable to stash <color=white>{amount}</color>x <color=green>{stashedItemType.PrefabName()}</color> due to insufficient space in stashes!");
             }
         }
 
