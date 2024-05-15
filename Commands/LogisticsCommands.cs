@@ -62,6 +62,7 @@ namespace Logistics.Commands
             var globalSettings = Core.PlayerSettings.GetGlobalSettings();
             ctx.Reply("KindredLogistics settings:\n" +
                       $"SortStash{(globalSettings.SortStash ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.SortStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"Pull (Global) : {(globalSettings.Pull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"CraftPull{(globalSettings.CraftPull ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.CraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"DontPullLast: {(settings.DontPullLast ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"AutoStashMissions{(globalSettings.AutoStashMissions ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
@@ -81,12 +82,20 @@ namespace Logistics.Commands
             ctx.Reply($"Global SortStash is {(autoStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
+        [Command(name: "pull", shortHand: "p", usage: ".lg p", description: "Toggles the ability to pull items from containers.", adminOnly: true)]
+        public static void TogglePlayerPull(ChatCommandContext ctx)
+        {
+            var pull = Core.PlayerSettings.TogglePull();
+            ctx.Reply($"Global Pull is {(pull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
         [Command(name: "craftPull", shortHand: "cr", usage: ".lg cr", description: "Toggles right-clicking on recipes for missing ingredients.", adminOnly: true)]
         public static void TogglePlayerAutoPull(ChatCommandContext ctx)
         {
             var autoPull = Core.PlayerSettings.ToggleCraftPull();
             ctx.Reply($"CraftPull is {(autoPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
+
         [Command(name: "autoStashMissions", shortHand: "asm", usage: ".lg asm", description: "Toggles autostashing for servant missions.", adminOnly: true)]
         public static void ToggleServantAutoStash(ChatCommandContext ctx)
         {
@@ -107,6 +116,7 @@ namespace Logistics.Commands
             var settings = Core.PlayerSettings.GetGlobalSettings();
             ctx.Reply("KindredLogistics Global settings:\n" +
                       $"SortStash: {(settings.SortStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"Pull: {(settings.Pull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"CraftPull: {(settings.CraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"AutoStashMissions: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Conveyor: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
@@ -123,13 +133,9 @@ namespace Logistics.Commands
         }
 
         [Command(name: "pull", description: "Pulls specified item from containers.")]
-        public static void PullItem(ChatCommandContext ctx, FoundItem item, int quantity=1)
+        public static void PullItem(ChatCommandContext ctx, FoundItem item, int quantity = 1)
         {
-            var amountRemaining = PullService.PullItem(ctx.Event.SenderCharacterEntity, item.prefab, quantity);
-            if(amountRemaining <= 0)
-                ctx.Reply($"Pulled {quantity}x {item.prefab.PrefabName()} from containers.");
-            else
-                ctx.Reply($"Was able to only pull {quantity - amountRemaining}x out of desired {quantity}x {item.prefab.PrefabName()} from containers.");
+            PullService.PullItem(ctx.Event.SenderCharacterEntity, item.prefab, quantity);
         }
 
         [Command(name: "finditem", shortHand: "fi", description: "Finds the specified item in containers")]

@@ -63,11 +63,41 @@ class FoundItemConverter : CommandArgumentConverter<FoundItem>
                     searchResults.Add(kvp.Value);
                 }
             }
+        }
 
-            if (searchResults.Count == 1)
+        if (searchResults.Count == 1)
+        {
+            return new FoundItem(searchResults[0]);
+        }
+
+        if (searchResults.Count == 0)
+        {
+            // Try a triple search splitting the input
+            foreach (var kvp in itemNamesToPrefabs)
             {
-                return new FoundItem(searchResults[0]);
+                for (var i = 3; i < input.Length - 3; ++i)
+                {
+                    var inputOne = input[..i];
+                    if (!kvp.Key.Contains(inputOne, StringComparison.OrdinalIgnoreCase)) continue;
+
+                    for (var j = i + 3; j < input.Length; j++)
+                    {
+                        var inputTwo = input[i..j];
+                        var inputThree = input[j..];
+
+                        if (kvp.Key.Contains(inputTwo, StringComparison.OrdinalIgnoreCase) &&
+                            kvp.Key.Contains(inputThree, StringComparison.OrdinalIgnoreCase))
+                        {
+                            searchResults.Add(kvp.Value);
+                        }
+                    }
+                }
             }
+        }
+
+        if (searchResults.Count == 1)
+        {
+            return new FoundItem(searchResults[0]);
         }
 
         if (searchResults.Count > 1)
@@ -94,13 +124,29 @@ class FoundItemConverter : CommandArgumentConverter<FoundItem>
     }
 
     static Dictionary<string, PrefabGUID> itemNamesToPrefabs = new Dictionary<string, PrefabGUID>(StringComparer.OrdinalIgnoreCase);
+    static readonly HashSet<PrefabGUID> skipItems = [
+        new PrefabGUID(-625033436), // Chest TransmogTest
+        new PrefabGUID(1217578824), // Legs TransmogTest
+        new PrefabGUID(409678749),  // Item_Headgear_GeneralHelmet 
+        new PrefabGUID(2029158532), // Item_Dummy_Rat
+        new PrefabGUID(-1199259626),// Item_Ingredient_Scales
+        new PrefabGUID(930747930),  // Item_Dummy_Silkworm
+        ];
 
     public static void LoadItemNames()
     {
         foreach (var (prefab, name) in Core.PrefabCollectionSystem.PrefabGuidToNameDictionary)
         {
-            if(name.StartsWith("Item_"))
-                itemNamesToPrefabs[prefab.PrefabName()] = prefab;
+            if(skipItems.Contains(prefab)) continue;
+            if (name.StartsWith("Item_") && !name.EndsWith("_Base") && !name.EndsWith("_Trader_Template") && !name.EndsWith("_Debug"))
+            {
+                var prefabName = prefab.PrefabName();
+                /*if(itemNamesToPrefabs.TryGetValue(prefabName, out var otherPrefab))
+                {
+                    Core.Log.LogWarning($"Duplicate item name found: {prefabName} {prefab} {otherPrefab}");
+                }//*/
+                itemNamesToPrefabs[prefabName] = prefab;
+            }
         }
     }
 
