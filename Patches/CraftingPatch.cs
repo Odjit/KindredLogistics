@@ -2,6 +2,7 @@ using HarmonyLib;
 using KindredLogistics.Services;
 using ProjectM;
 using ProjectM.Network;
+using ProjectM.Shared;
 using Stunlock.Core;
 using System;
 using Unity.Collections;
@@ -71,7 +72,6 @@ public class CraftingPatch
             {
                 foreach (Entity entity in entities)
                 {
-                    //ForgeEvents.CancelRepair forgeEvent = entity.Read<ForgeEvents.CancelRepair>();
                     var fromCharacter = entity.Read<FromCharacter>();
                     Entity station = fromCharacter.Character.Read<Interactor>().Target; // station entity
                     Forge_Shared forge_Shared = station.Read<Forge_Shared>();
@@ -80,8 +80,17 @@ public class CraftingPatch
                     ulong steamId = fromCharacter.User.Read<User>().PlatformId;
                     if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
                     if (forge_Shared.State.Equals(ForgeState.Repairing)) continue;
+                    if (itemEntity.Has<ShatteredItem>())
+                    {
+                        PullService.HandleRecipePull(fromCharacter.Character, station, prefabGUID);
+                        return;
+                    }
+                    if (itemEntity.Has<UpgradeableLegendaryItem>())
+                    {
+                        PullService.HandleUpgrade(fromCharacter.Character, station, itemEntity);
+                    }
+                    
 
-                    PullService.HandleRecipePull(fromCharacter.Character, station, prefabGUID);
                 }
             }
             catch (Exception e)
@@ -94,6 +103,11 @@ public class CraftingPatch
             }
         }
     }
+    
+    
+
+
+
 
 
 }
