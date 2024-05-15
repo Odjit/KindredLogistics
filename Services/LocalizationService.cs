@@ -1,4 +1,5 @@
 ﻿using ProjectM;
+using ProjectM.Shared;
 using Stunlock.Core;
 using Stunlock.Localization;
 using System;
@@ -7,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
-using Unity.Entities.UniversalDelegates;
 
 namespace KindredLogistics.Services
 {
@@ -88,7 +88,7 @@ namespace KindredLogistics.Services
             {
                 return text;
             }
-            return "<Localization not found!>";
+            return $"<Localization not found for {guid}>";
         }
 
         public string GetLocalization(LocalizationKey key)
@@ -103,7 +103,50 @@ namespace KindredLogistics.Services
             {
                 return null;
             }
-            return GetLocalization(itemLocalizationHash);
+            var name = GetLocalization(itemLocalizationHash);
+
+            if (itemPrefabGUID._Value == -1265586439)
+                name = "Darkmatter Pistols";
+
+            if(Core.PrefabCollectionSystem._PrefabLookupMap.TryGetValue(itemPrefabGUID, out var prefab))
+            {
+                if (prefab.Has<ItemData>())
+                {
+                    var itemData = prefab.Read<ItemData>();
+                    if (itemData.ItemType == ItemType.Tech)
+                    {
+                        name = "Book " + name;
+                    }
+                }
+                if (prefab.Has<JewelInstance>())
+                {
+                    var jewelInstance = prefab.Read<JewelInstance>();
+                    // For some reason tier 0 is special and includes this already in its name
+                    if (jewelInstance.TierIndex != 0)
+                        name += $" Jewel Tier {jewelInstance.TierIndex + 1}";
+                }
+                if (prefab.Has<LegendaryItemInstance>())
+                {
+                    var legendaryInstance = prefab.Read<LegendaryItemInstance>();
+                    name += $" Tier {legendaryInstance.TierIndex + 1}";
+                }
+                if (prefab.Has<ShatteredItem>())
+                {
+                    name += " Shattered";
+                }
+            }
+
+            // Disambuigation for some books
+            if (itemPrefabGUID._Value == 1455590675 || itemPrefabGUID._Value == -651642571)
+            {
+                name += " Tier 1";
+            }
+            else if (itemPrefabGUID._Value == 1150376281 || itemPrefabGUID._Value == 686122001)
+            {
+                name += " Tier 2";
+            }
+
+            return name;
         }
 
     }
