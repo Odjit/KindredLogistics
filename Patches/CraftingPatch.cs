@@ -61,6 +61,39 @@ public class CraftingPatch
             }
         }
     }
+    [HarmonyPatch(typeof(ForgeSystem_Events), nameof(ForgeSystem_Events.OnUpdate))]
+    public static class ForgeSystem_EventsPatch
+    {
+        public static void Prefix(ForgeSystem_Events __instance)
+        {
+            var entities = __instance._CancelRepairEventQuery.ToEntityArray(Allocator.Temp);
+            try
+            {
+                foreach (Entity entity in entities)
+                {
+                    //ForgeEvents.CancelRepair forgeEvent = entity.Read<ForgeEvents.CancelRepair>();
+                    var fromCharacter = entity.Read<FromCharacter>();
+                    Entity station = fromCharacter.Character.Read<Interactor>().Target; // station entity
+                    Forge_Shared forge_Shared = station.Read<Forge_Shared>();
+                    Entity itemEntity = forge_Shared.ItemEntity._Entity;
+                    PrefabGUID prefabGUID = itemEntity.Read<PrefabGUID>();
+                    ulong steamId = fromCharacter.User.Read<User>().PlatformId;
+                    if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
+                    if (forge_Shared.State.Equals(ForgeState.Repairing)) continue;
 
-    
+                    PullService.HandleRecipePull(fromCharacter.Character, station, prefabGUID);
+                }
+            }
+            catch (Exception e)
+            {
+                Core.Log.LogError($"Exited ForgeSystem_Events hook early: {e}");
+            }
+            finally
+            {
+                entities.Dispose();
+            }
+        }
+    }
+
+
 }
