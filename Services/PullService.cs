@@ -1,9 +1,7 @@
-﻿using KindredLogistics.Patches;
-using ProjectM;
+﻿using ProjectM;
 using ProjectM.Network;
 using Stunlock.Core;
 using System;
-using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -11,26 +9,42 @@ namespace KindredLogistics.Services
 {
     internal class PullService
     {
-        public static int PullItem(Entity character, PrefabGUID item, int quantity)
+        public static void PullItem(Entity character, PrefabGUID item, int quantity)
         {
             var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();
+            if (Core.PlayerSettings.IsPullEnabled())
+            { 
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Pulling is globally disabled.");
+                return;
+            }
+            
             var entityManager = Core.EntityManager;
             var serverGameManager = Core.ServerGameManager;
-
+            var territoryIndex = Core.TerritoryService.GetTerritoryId(character);
+           
+            if (territoryIndex == -1)
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to pull outside territories!");
+                return;
+            }
             if (!InventoryUtilities.TryGetInventoryEntity(entityManager, character, out Entity inventory))
             {
                 Core.Log.LogWarning($"No inventory found for character {character}.");
-                return quantity;
+                return;
             }
 
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
 
             var quantityRemaining = quantity;
+            var foundStash = false;
             foreach (var stash in Core.Stash.GetAllAlliedStashesOnTerritory(character))
             {
                 if (quantityRemaining <= 0) break;
                 if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                     continue;
+
+                foundStash = true;
+
                 foreach (var attachedBuffer in buffer)
                 {
                     var attachedEntity = attachedBuffer.Entity;
@@ -54,7 +68,13 @@ namespace KindredLogistics.Services
                 }
             }
 
-            return quantityRemaining;
+            if (!foundStash)
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to pull as no available stashes found in your current territory!");
+            else if (quantityRemaining <= 0)
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Pulled {quantity}x {item.PrefabName()} from containers.");
+            else
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Was able to only pull {quantity - quantityRemaining}x out of desired {quantity}x {item.PrefabName()} from containers.");
+
         }
 
         public static void HandleRecipePull(Entity character, Entity workstation, PrefabGUID recipe)

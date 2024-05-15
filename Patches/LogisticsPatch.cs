@@ -2,7 +2,6 @@ using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
 using ProjectM.Shared.Systems;
-using Stunlock.Core;
 using System;
 using System.Collections.Generic;
 using Unity.Entities;

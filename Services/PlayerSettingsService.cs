@@ -25,6 +25,7 @@ namespace KindredLogistics.Services
             }
 
             public bool SortStash { get; set; }
+            public bool Pull { get; set; }
             public bool CraftPull { get; set; }
             public bool DontPullLast { get; set; }
             public bool AutoStashMissions { get; set; }
@@ -42,6 +43,7 @@ namespace KindredLogistics.Services
                 playerSettings[GLOBAL_PLAYER_ID] = new PlayerSettings()
                 {
                     SortStash = true,
+                    Pull = true,
                     CraftPull = true,
                     AutoStashMissions = true,
                     Conveyor = true
@@ -86,6 +88,21 @@ namespace KindredLogistics.Services
             SaveSettings();
             return settings.SortStash;
         }
+        
+        public bool TogglePull()
+        {
+            if (!playerSettings.TryGetValue(GLOBAL_PLAYER_ID, out var settings))
+                settings = new PlayerSettings();
+            settings.Pull = !settings.Pull;
+            playerSettings[GLOBAL_PLAYER_ID] = settings;
+            SaveSettings();
+            return settings.Pull;
+        }
+
+        public bool IsPullEnabled()
+        {
+            return !playerSettings[GLOBAL_PLAYER_ID].Pull;
+        }
 
         public bool IsCraftPullEnabled(ulong playerId)
         {
@@ -125,7 +142,7 @@ namespace KindredLogistics.Services
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return false;
-            return settings.AutoStashMissions;
+            return settings.AutoStashMissions && playerSettings[GLOBAL_PLAYER_ID].AutoStashMissions;
         }
 
         public bool ToggleAutoStashMissions(ulong playerId = GLOBAL_PLAYER_ID)
@@ -135,14 +152,14 @@ namespace KindredLogistics.Services
             settings.AutoStashMissions = !settings.AutoStashMissions;
             playerSettings[playerId] = settings;
             SaveSettings();
-            return settings.AutoStashMissions && playerSettings[GLOBAL_PLAYER_ID].AutoStashMissions;
+            return settings.AutoStashMissions;
         }
 
         public bool IsConveyorEnabled(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 return false;
-            return settings.Conveyor;
+            return settings.Conveyor && playerSettings[GLOBAL_PLAYER_ID].Conveyor;
         }
 
         public bool ToggleConveyor(ulong playerId = GLOBAL_PLAYER_ID)
@@ -152,7 +169,7 @@ namespace KindredLogistics.Services
             settings.Conveyor = !settings.Conveyor;
             playerSettings[playerId] = settings;
             SaveSettings();
-            return settings.Conveyor && playerSettings[GLOBAL_PLAYER_ID].Conveyor;
+            return settings.Conveyor;
         }
 
         public PlayerSettings GetSettings(ulong playerId)
