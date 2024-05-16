@@ -51,7 +51,7 @@ Feel free to reach out on discord to either (odjit) or (zfolmt) if you have any 
 
 
 
-### Admin Commands Commands
+### Admin Commands
 - `.logisticsglobal sortStash`
   - Turns on or off the availability to players for the ability to use .stash
   - Shortcut: *.lg ss*
@@ -67,5 +67,23 @@ Feel free to reach out on discord to either (odjit) or (zfolmt) if you have any 
 - `.losgisticsglobal settings`
   - Shows the enabled/disabled status of the above systems.
   - Shortcut: *.lg s*
+
+
+
+ ### Feature Summary
+ 
+**Stashing**
+  - Colloquially known as Quickstash thanks to previous mods by iZastic and others, players are able to send all items in their inventory (items in hotbar will be ignored) to containers with matching items in their territory. This can be done via '.stash' or by double-clicking the sort button in your inventory after toggling on the feature with '.l ss'.
+  - Players are also able to pull items to their inventory with '.pull (item) (quantity)' and search for items in stashes with '.finditem (item)'. The latter will guide you to stashes that contain the item you searched for.
+  - Servants returning from missions are able to stash their inventories automatically if '.l asm' is toggled. Players are also able to set up a mission stash by naming it 'Spoils' which servants will stash to if no matching items are found in other stashes. Multiple mission stashes can be setup in advance incase they become full. Items will remain in the inventory of the servant otherwise.
+
+**CraftPull**
+  - Players are able to request items for recipes in crafting stations by right-clicking on the recipe to pull the ingredients if found and '.l cr' is toggled on. This works for all recipes except for jewel crafting at this time and can be done multiple times for larger batches of crafting. Players can toggle '.l dpl' on and off to prevent or allow the pulling of the last remaining quantity of an ingredient for a recipe.
+
+**Conveyors**
+  - Players can setup groups of refining stations that work in tandem to avoid excessive manual relocation of materials from station to station. Refining stations named 's0' will send required ingredients for recipes to other refining stations named 'r0', and multiple groups can be defined by using other numbers. For example, a sawmill and furnace both named 's0' will supply another sawmill named 'r0' with the ingredients needed for reinforced planks as the ingredients are produced. This can be used to create complex production chains to automate the refining of various materials and further controlled by toggling recipes on and off in the station menus.
+
+
+    
  
 
