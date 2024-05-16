@@ -82,13 +82,6 @@ namespace KindredLogistics.Services
         {
             var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
 
-            if (recipeEntity.Has<ShatteredItemRepairCost>())
-            {
-                HandleShattered(character, workstation, recipe);
-                return;
-            }
-            
-
             var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();
             var entityManager = Core.EntityManager;
             var serverGameManager = Core.ServerGameManager;
@@ -213,21 +206,20 @@ namespace KindredLogistics.Services
             }
         }
 
-        public static void HandleShattered(Entity character, Entity workstation, PrefabGUID recipe)
+        public static void HandleShattered(Entity character, Entity workstation, Entity item)
         {
             var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();
             var entityManager = Core.EntityManager;
             var serverGameManager = Core.ServerGameManager;
 
-            var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
-            var recipeName = recipeEntity.Read<PrefabGUID>().PrefabName();
+            var recipeName = item.Read<PrefabGUID>().PrefabName();
 
             var castleWorkstation = workstation.Read<CastleWorkstation>();
             var recipeReduction = castleWorkstation.WorkstationLevel.HasFlag(WorkstationLevel.MatchingFloor) ? 0.75f : 1f;
 
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
 
-            var requirements = recipeEntity.ReadBuffer<ShatteredItemRepairCost>();
+            var requirements = item.ReadBuffer<ShatteredItemRepairCost>();
             try
             {
                 if (!InventoryUtilities.TryGetInventoryEntity(entityManager, character, out Entity inventory))
@@ -340,13 +332,13 @@ namespace KindredLogistics.Services
             var serverGameManager = Core.ServerGameManager;
             
             var castleWorkstation = workstation.Read<CastleWorkstation>();
-
+            
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
             UpgradeableLegendaryItem upgradeableLegendaryItem = item.Read<UpgradeableLegendaryItem>();
 
             var requirements = item.ReadBuffer<UpgradeableLegendaryItemTiers>();
             var requirement = requirements[upgradeableLegendaryItem.NextTier];
-            var recipeName = Core.Localization.GetPrefabName(requirements[upgradeableLegendaryItem.NextTier].TierPrefab);
+            var recipeName = item.Read<PrefabGUID>().PrefabName();
             try
             {
                 if (!InventoryUtilities.TryGetInventoryEntity(entityManager, character, out Entity inventory))

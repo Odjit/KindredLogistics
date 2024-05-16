@@ -76,13 +76,13 @@ public class CraftingPatch
                     Entity station = fromCharacter.Character.Read<Interactor>().Target; // station entity
                     Forge_Shared forge_Shared = station.Read<Forge_Shared>();
                     Entity itemEntity = forge_Shared.ItemEntity._Entity;
-                    PrefabGUID prefabGUID = itemEntity.Read<PrefabGUID>();
+                    //PrefabGUID prefabGUID = itemEntity.Read<PrefabGUID>();
                     ulong steamId = fromCharacter.User.Read<User>().PlatformId;
                     if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
                     if (forge_Shared.State.Equals(ForgeState.Repairing)) continue;
                     if (itemEntity.Has<ShatteredItem>())
                     {
-                        PullService.HandleRecipePull(fromCharacter.Character, station, prefabGUID);
+                        PullService.HandleShattered(fromCharacter.Character, station, itemEntity);
                         return;
                     }
                     if (itemEntity.Has<UpgradeableLegendaryItem>())
