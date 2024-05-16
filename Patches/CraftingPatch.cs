@@ -4,7 +4,6 @@ using ProjectM;
 using ProjectM.Network;
 using ProjectM.Shared;
 using Stunlock.Core;
-using System;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -24,25 +23,22 @@ public class CraftingPatch
                 {
                     if (entity.Has<StopCraftItemEvent>() && entity.Has<FromCharacter>())
                     {
-                        var stopCraftEvent = entity.Read<StopCraftItemEvent>();
                         var fromCharacter = entity.Read<FromCharacter>();
-                        Entity station = fromCharacter.Character.Read<Interactor>().Target; // station entity
-                        NetworkId networkId = stopCraftEvent.Workstation;
                         ulong steamId = fromCharacter.User.Read<User>().PlatformId;
-                        PrefabGUID prefabGUID = stopCraftEvent.RecipeGuid;
                         if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
+
+                        var stopCraftEvent = entity.Read<StopCraftItemEvent>();
+                        Entity station = fromCharacter.Character.Read<Interactor>().Target; // station entity
+                        PrefabGUID prefabGUID = stopCraftEvent.RecipeGuid;
 
                         var alreadyCraftingRecipe = false;
                         var queuedActions = Core.EntityManager.GetBuffer<QueuedWorkstationCraftAction>(station);
-                        if (queuedActions.Length > 0)
+                        foreach (var action in queuedActions)
                         {
-                            foreach (var action in queuedActions)
+                            if (action.RecipeGuid.Equals(prefabGUID))
                             {
-                                if (action.RecipeGuid.Equals(prefabGUID))
-                                {
-                                    alreadyCraftingRecipe = true;
-                                    break;
-                                }
+                                alreadyCraftingRecipe = true;
+                                break;
                             }
                         }
                         if (alreadyCraftingRecipe)
@@ -52,16 +48,13 @@ public class CraftingPatch
                     }
                 }
             }
-            catch (Exception e)
-            {
-                Core.Log.LogError($"Exited StopCraftingSystem hook early: {e}");
-            }
             finally
             {
                 entities.Dispose();
             }
         }
     }
+
     [HarmonyPatch(typeof(ForgeSystem_Events), nameof(ForgeSystem_Events.OnUpdate))]
     public static class ForgeSystem_EventsPatch
     {
@@ -73,29 +66,23 @@ public class CraftingPatch
                 foreach (Entity entity in entities)
                 {
                     var fromCharacter = entity.Read<FromCharacter>();
+                    ulong steamId = fromCharacter.User.Read<User>().PlatformId;
+                    if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
+
                     Entity station = fromCharacter.Character.Read<Interactor>().Target; // station entity
                     Forge_Shared forge_Shared = station.Read<Forge_Shared>();
                     Entity itemEntity = forge_Shared.ItemEntity._Entity;
-                    //PrefabGUID prefabGUID = itemEntity.Read<PrefabGUID>();
-                    ulong steamId = fromCharacter.User.Read<User>().PlatformId;
-                    if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
+
                     if (forge_Shared.State.Equals(ForgeState.Repairing)) continue;
                     if (itemEntity.Has<ShatteredItem>())
                     {
-                        PullService.HandleShattered(fromCharacter.Character, station, itemEntity);
-                        return;
+                        PullService.HandleForgePull(fromCharacter.Character, station, itemEntity);
                     }
-                    if (itemEntity.Has<UpgradeableLegendaryItem>())
+                    else if (itemEntity.Has<UpgradeableLegendaryItem>())
                     {
-                        PullService.HandleUpgrade(fromCharacter.Character, station, itemEntity);
+                        PullService.HandleForgeUpgradePull(fromCharacter.Character, station, itemEntity);
                     }
-                    
-
                 }
-            }
-            catch (Exception e)
-            {
-                Core.Log.LogError($"Exited ForgeSystem_Events hook early: {e}");
             }
             finally
             {
@@ -103,11 +90,4 @@ public class CraftingPatch
             }
         }
     }
-    
-    
-
-
-
-
-
 }
