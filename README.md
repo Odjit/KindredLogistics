@@ -6,7 +6,7 @@ It is entirely server side, and you can double tap R with your inventory open to
 You can pull items from your chests for crafting by right clicking the recipe in the crafting station!
 Servants will autostash their inventories into chests or mission overflow chests (Label them "spoils").
 Never lose where your stuff is again! Use .finditem to find where your items are stored!
-Tired of running around from station to station to make something? No worries! Use the conveyor system to link chests and refining inventories for chain crafting! Label 
+Tired of running around from station to station to make something? No worries! Use the conveyor system to link chests and refining inventories for chain crafting!
 
 
 This was a collaborative effort from Odjit(Dj) and Zfolmt(Mitch). 
@@ -14,6 +14,8 @@ This was a collaborative effort from Odjit(Dj) and Zfolmt(Mitch).
 Feel free to reach out on discord to either (odjit) or (zfolmt) if you have any questions or need help with the mod.
 
 [V Rising Modding Discord](https://vrisingmods.com/discord)
+
+PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW OF THE FEATURES!
 
 ## Player Commands
 ### Enable/Disable
@@ -46,7 +48,7 @@ Feel free to reach out on discord to either (odjit) or (zfolmt) if you have any 
   - will take items out of your chests to your inventory in the amount and kind specified
   - Example: *.pull plank 50*
 - `.finditem (item)`
-  - conducts a search for an item and returns the name of the chests that contain said item.
+  - conducts a search for an item and returns the name of the chests that contain said item. Also creates a beam to the chest you guide you there.
   - Shortcut: *.fi (item)*
 
 
@@ -82,8 +84,13 @@ Feel free to reach out on discord to either (odjit) or (zfolmt) if you have any 
 
 **Conveyors**
   - Players can setup groups of refining stations that work in tandem to avoid excessive manual relocation of materials from station to station. Refining stations named 's0' will send required ingredients for recipes to other refining stations named 'r0', and multiple groups can be defined by using other numbers. For example, a sawmill and furnace both named 's0' will supply another sawmill named 'r0' with the ingredients needed for reinforced planks as the ingredients are produced. This can be used to create complex production chains to automate the refining of various materials and further controlled by toggling recipes on and off in the station menus.
+  - Conveyor stations can be named S0R0 to both send and receive items. So for example you can have a chest with ore be "IronOreS1" sending out ore to a furnace named "IronFurnace R1S1". The Iron furnace will receive from the chest, and send out bars to the next station (in this case, a sawmill labelled "ReinforcedPlanksR1", or a chest labelled "IronIngotsR1" that has at least 1 ingot in it to store the output.
 
-
+**Reminder**
+  - If you have dontPullLast enabled, nothing, including crafting, will take the only version of an item from a chest. This is useful for keeping a chest with a single item in it for stashing purposes, but if you're crafting and you have exact mats stored you might want to toggle it off.
+  - Find item beams will only be present for one beam per chest. So if two players are searching planks on the same plot, only one will keep the beam.
+  - Check what you have enabled with `.l s` if you feel a system isn't working.
+  - Stash will only send out items that exactly match that which you have stored. If it doesn't stash, you don't have a chest with that item in it, or the chest is full.
     
  
 
