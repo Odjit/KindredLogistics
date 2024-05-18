@@ -122,41 +122,34 @@ namespace KindredLogistics.Services
             var serverGameManager = Core.ServerGameManager;
             var matches = new Dictionary<PrefabGUID, List<(Entity stash, Entity inventory)>>(capacity: 100);
             var foundStash = false;
-            try
+            foreach (var stash in GetAllAlliedStashesOnTerritory(charEntity))
             {
-                foreach (var stash in GetAllAlliedStashesOnTerritory(charEntity))
+                if (stash.Has<CastleWorkstation>()) continue;
+                if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
+                    continue;
+
+                foundStash = true;
+
+                foreach (var attachedBuffer in buffer)
                 {
-                    if (stash.Has<CastleWorkstation>()) continue;
-                    if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
-                        continue;
+                    var attachedEntity = attachedBuffer.Entity;
+                    if (!attachedEntity.Has<PrefabGUID>()) continue;
+                    if (!attachedEntity.Read<PrefabGUID>().Equals(ExternalInventoryPrefab)) continue;
 
-                    foundStash = true;
-
-                    foreach (var attachedBuffer in buffer)
+                    var checkInventoryBuffer = attachedEntity.ReadBuffer<InventoryBuffer>();
+                    foreach (var inventoryEntry in checkInventoryBuffer)
                     {
-                        var attachedEntity = attachedBuffer.Entity;
-                        if (!attachedEntity.Has<PrefabGUID>()) continue;
-                        if (!attachedEntity.Read<PrefabGUID>().Equals(ExternalInventoryPrefab)) continue;
-
-                        var checkInventoryBuffer = attachedEntity.ReadBuffer<InventoryBuffer>();
-                        foreach (var inventoryEntry in checkInventoryBuffer)
+                        var item = inventoryEntry.ItemType;
+                        if (item.GuidHash == 0) continue;
+                        if (!matches.TryGetValue(item, out var itemMatches))
                         {
-                            var item = inventoryEntry.ItemType;
-                            if (item.GuidHash == 0) continue;
-                            if (!matches.TryGetValue(item, out var itemMatches))
-                            {
-                                itemMatches = [];
-                                matches[item] = itemMatches;
-                            }
-                            else if (itemMatches.Any(x => x.stash == stash)) continue;
-                            itemMatches.Add((stash, attachedEntity));
+                            itemMatches = [];
+                            matches[item] = itemMatches;
                         }
+                        else if (itemMatches.Any(x => x.stash == stash)) continue;
+                        itemMatches.Add((stash, attachedEntity));
                     }
                 }
-            }
-            catch (System.Exception e)
-            {
-                Core.Log.LogError($"Exited UpdateRefiningSystem matchesProcessing early: {e}");
             }
 
             if (!foundStash)
@@ -206,6 +199,7 @@ namespace KindredLogistics.Services
                             success = true;
                             break;
                         }
+
                         if (success) break;
                     }
                     if(!success)
