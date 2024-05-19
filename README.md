@@ -20,7 +20,7 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
 ## Player Commands
 ### Enable/Disable
 - `.logistics sortStash`
-  - Turns on or off your personal ability to use .stash
+  - Turns on or off your personal ability to use the sort button in your inventory to stash items.
   - Shortcut: *.l ss*
 - `.logistics craftpull `
   - Turns on or off your personal ability to pull items from chests for crafting in stations.
@@ -42,7 +42,7 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
 ### Stash Commands
 
 - `.stash`
-  - Will send all items besides the hotbar in your inventory to chests on the territory you are in. (Requires allyship or ownership)
+  - Will send all items besides the hotbar in your inventory to chests on the territory you are in. Requires allyship or ownership. Always enabled.
   - Shortcut: Double Tap the "Sort" Button in your inventory, or while hovering over inventory open double tap R (default keybinding for sort.)
 - `.pull (item) (quantity)`
   - will take items out of your chests to your inventory in the amount and kind specified
@@ -55,7 +55,7 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
 
 ### Admin Commands
 - `.logisticsglobal sortStash`
-  - Turns on or off the availability to players for the ability to use .stash
+  - Turns on or off the availability to players for the ability to use the sort button in their inventory to stash items.
   - Shortcut: *.lg ss*
 - `.logisticsglobal craftpull `
   - Turns on or off the availability to players for the ability to pull items from chests for crafting in stations.
