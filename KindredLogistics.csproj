@@ -3,13 +3,13 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>KindredLogistics</AssemblyName>
     <Description>Created with VRising.ModTemplate, you should edit this.</Description>
-    <Version>0.1.6</Version>
+    <Version>1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RootNamespace>KindredLogistics</RootNamespace>
-    <AssemblyVersion>0.1.6.0</AssemblyVersion>
-    <FileVersion>0.1.6.0</FileVersion>
-    <InformationalVersion>0.1.6+2.Branch.main.Sha.62bb8fcf39ee2ebe62410e48ec8f8fdc72e85b10</InformationalVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0+2.Branch.main.Sha.62bb8fcf39ee2ebe62410e48ec8f8fdc72e85b10</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Data\prefabNames.json" />
@@ -20,11 +20,11 @@
     <EmbeddedResource Include="Localization\English.json" />
   </ItemGroup>
   <ItemGroup>
-	  <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.668" IncludeAssets="compile" />
-	  <PackageReference Include="BepInEx.Core" Version="6.0.0-be.668" IncludeAssets="compile" />
+	  <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.690" IncludeAssets="compile" />
+	  <PackageReference Include="BepInEx.Core" Version="6.0.0-be.690" IncludeAssets="compile" />
 	  <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
-	  <PackageReference Include="VRising.Unhollowed.Client" Version="1.0.0.*" />
-	  <PackageReference Include="VRising.VampireCommandFramework" Version="0.8.*" />
+	  <PackageReference Include="VRising.Unhollowed.Client" Version="1.0.2.*" />
+	  <PackageReference Include="VRising.VampireCommandFramework" Version="0.9.*" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="copy &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\VRisingDedicatedServer\BepInEx\plugins&quot; " />

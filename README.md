@@ -76,6 +76,7 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
  
 **Stashing**
   - Colloquially known as Quickstash thanks to previous mods by iZastic and others, players are able to send all items in their inventory (items in hotbar will be ignored) to containers with matching items in their territory. This can be done via '.stash' or by double-clicking the sort button in your inventory after toggling on the feature with '.l ss'.
+  - Exclude stashes by naming them and adding two single appostraphes to the end of the chest name. Ex: `IronOre''` will not be stashed to.
   - Players are also able to pull items to their inventory with '.pull (item) (quantity)' and search for items in stashes with '.finditem (item)'. The latter will guide you to stashes that contain the item you searched for.
   - Servants returning from missions are able to stash their inventories automatically if '.l asm' is toggled. Players are also able to set up a mission stash by naming it 'Spoils' which servants will stash to if no matching items are found in other stashes. Multiple mission stashes can be setup in advance incase they become full. Items will remain in the inventory of the servant otherwise.
 
