@@ -19,16 +19,16 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
 
 ## Player Commands
 ### Enable/Disable
-- `.logistics sortStash`
+- `.logistics sortstash`
   - Turns on or off your personal ability to use the sort button in your inventory to stash items.
   - Shortcut: *.l ss*
 - `.logistics craftpull `
   - Turns on or off your personal ability to pull items from chests for crafting in stations.
   - Shortcut: *.l cr*
-- `.logistics dontPullLast`
+- `.logistics dontpulllast`
   - Turns on or off your personal ability to not pull the last item from a container for Logistics commands.
   - Shorcut: *.l dpl*
-- `.logistics autoStashMissions`
+- `.logistics autostashmissions`
   - Turns on or off your servants from autostashing into chests/Mission overflow chests.
   - Shortcut: *.l asm*
 - `.logistics conveyor`
@@ -54,13 +54,13 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
 
 
 ### Admin Commands
-- `.logisticsglobal sortStash`
+- `.logisticsglobal sortstash`
   - Turns on or off the availability to players for the ability to use the sort button in their inventory to stash items.
   - Shortcut: *.lg ss*
 - `.logisticsglobal craftpull `
   - Turns on or off the availability to players for the ability to pull items from chests for crafting in stations.
   - Shortcut: *.lg cr*
-- `.logisticsglobal autoStashMissions`
+- `.logisticsglobal autostashmissions`
   - Turns on or off the availability to players for servants from autostashing into chests/Mission overflow chests.
   - Shortcut: *.lg asm*
 - `.logisticsglobal conveyor`
