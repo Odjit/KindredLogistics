@@ -3,6 +3,7 @@ using ProjectM.Network;
 using ProjectM.Scripting;
 using ProjectM.Shared;
 using Stunlock.Core;
+using System;
 using Unity.Entities;
 using UnityEngine;
 
@@ -106,7 +107,7 @@ namespace KindredLogistics.Services
             // Determine the multiple of the recipe we currently have then we will try to fetch up to one more recipe's worth of materials
             var currentRecipeMultiple = -1;
             var castleWorkstation = workstation.Read<CastleWorkstation>();
-            var recipeReduction = castleWorkstation.WorkstationLevel.HasFlag(WorkstationLevel.MatchingFloor) ? 0.75f : 1f;
+            var recipeReduction = castleWorkstation.WorkstationLevel.HasFlag(WorkstationLevel.MatchingFloor) ? 0.75 : 1;
             var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
             var requirements = recipeEntity.ReadBuffer<RecipeRequirementBuffer>();
             foreach (var requirement in requirements)
@@ -114,7 +115,7 @@ namespace KindredLogistics.Services
                 var currentAmount = serverGameManager.GetInventoryItemCount(inventory, requirement.Guid);
                 if (!workstationInventory.Equals(Entity.Null))
                     currentAmount += serverGameManager.GetInventoryItemCount(workstationInventory, requirement.Guid);
-                var requiredAmount = Mathf.RoundToInt(requirement.Amount * recipeReduction);
+                var requiredAmount = (int)Math.Round(requirement.Amount * recipeReduction, MidpointRounding.ToPositiveInfinity);
 
                 var itemRecipeMultiple = currentAmount / requiredAmount;
                 if (currentRecipeMultiple < 0)
@@ -183,7 +184,7 @@ namespace KindredLogistics.Services
                 var currentAmount = serverGameManager.GetInventoryItemCount(inventory, requirement.ItemId);
                 if (!workstationInventory.Equals(Entity.Null))
                     currentAmount += serverGameManager.GetInventoryItemCount(workstationInventory, requirement.ItemId);
-                var requiredAmount = Mathf.RoundToInt(requirement.Amount * recipeReduction);
+                var requiredAmount = (int)Math.Round(requirement.Amount * recipeReduction, MidpointRounding.ToPositiveInfinity);
 
                 var itemRecipeMultiple = currentAmount / requiredAmount;
                 if (currentRecipeMultiple < 0)
@@ -260,13 +261,13 @@ namespace KindredLogistics.Services
 
         static void RetrieveRequirement(Entity character, Entity workstation, User user, EntityManager entityManager, ref ServerGameManager serverGameManager,
                                                 string recipeName, bool dontPullLast, Entity inventory, Entity workstationInventory, ref bool fetchedForAnother,
-                                                ref bool fetchedMaterials, PrefabGUID requiredItem, int requiredAmount, int desiredRecipeMultiple, float recipeReduction,
+                                                ref bool fetchedMaterials, PrefabGUID requiredItem, int requiredAmount, int desiredRecipeMultiple, double recipeReduction,
                                                 string fetchMessage = "")
         {
             var currentAmount = serverGameManager.GetInventoryItemCount(inventory, requiredItem);
             if (!workstationInventory.Equals(Entity.Null))
                 currentAmount += serverGameManager.GetInventoryItemCount(workstationInventory, requiredItem);
-            requiredAmount = desiredRecipeMultiple * Mathf.RoundToInt(requiredAmount * recipeReduction);
+            requiredAmount = desiredRecipeMultiple * (int)Math.Round(requiredAmount * recipeReduction, MidpointRounding.ToPositiveInfinity);
             if (currentAmount >= requiredAmount) return;
 
             if (!fetchedMaterials)

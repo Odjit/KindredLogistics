@@ -34,7 +34,7 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
 - `.logistics conveyor`
   - Turns on or off your personal ability to set up linked inventories for converying crafting materials.
   - Shortcut: *.l co*
-- `.losgistics settings`
+- `.logistics settings`
   - Shows the enabled/disabled status of the above systems.
   - Shortcut: *.l s*
 
@@ -66,7 +66,7 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
 - `.logisticsglobal conveyor`
   - Turns on or off the availability to players for the ability to set up linked inventories for converying crafting materials.
   - Shortcut: *.lg co*
-- `.losgisticsglobal settings`
+- `.logisticsglobal settings`
   - Shows the enabled/disabled status of the above systems.
   - Shortcut: *.lg s*
 
