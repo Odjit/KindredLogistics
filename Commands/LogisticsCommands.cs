@@ -8,7 +8,7 @@ namespace Logistics.Commands
     [CommandGroup(name: "logistics", "l")]
     public static class LogisticsCommands
     {
-        [Command(name: "sortStash", shortHand: "ss", usage: ".l ss", description: "Toggles autostashing on double clicking sort button for player.")]
+        [Command(name: "sortstash", shortHand: "ss", usage: ".l ss", description: "Toggles autostashing on double clicking sort button for player.")]
         public static void TogglePlayerAutoStash(ChatCommandContext ctx)
         {
             var SteamID = ctx.Event.User.PlatformId;
@@ -17,7 +17,7 @@ namespace Logistics.Commands
             ctx.Reply($"SortStash is {(autoStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
        
-        [Command(name: "craftPull", shortHand: "cr", usage: ".l cr", description: "Toggles right-clicking on recipes for missing ingredients.")]
+        [Command(name: "craftpull", shortHand: "cr", usage: ".l cr", description: "Toggles right-clicking on recipes for missing ingredients.")]
         public static void TogglePlayerAutoPull(ChatCommandContext ctx)
         {
             var SteamID = ctx.Event.User.PlatformId;
@@ -26,7 +26,7 @@ namespace Logistics.Commands
             ctx.Reply($"CraftPull is {(autoPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
-        [Command(name: "dontPullLast", shortHand: "dpl", usage: ".l dpl", description: "Toggles the ability to not pull the last item from a container for Logistics commands.")]
+        [Command(name: "dontpulllast", shortHand: "dpl", usage: ".l dpl", description: "Toggles the ability to not pull the last item from a container for Logistics commands.")]
         public static void ToggleDontPullLast(ChatCommandContext ctx)
         {
             var SteamID = ctx.Event.User.PlatformId;
@@ -35,7 +35,7 @@ namespace Logistics.Commands
             ctx.Reply($"DontPullLast is {(dontPullLast ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
-        [Command(name: "autoStashMissions", shortHand: "asm", usage: ".l asm", description: "Toggles autostashing for servant missions.")]
+        [Command(name: "autostashmissions", shortHand: "asm", usage: ".l asm", description: "Toggles autostashing for servant missions.")]
         public static void ToggleServantAutoStash(ChatCommandContext ctx)
         {
             var SteamID = ctx.Event.User.PlatformId;
@@ -75,7 +75,7 @@ namespace Logistics.Commands
     public static class LogisticsGlobal
     {
 
-        [Command(name: "sortStash", shortHand: "ss", usage: ".lg ss", description: "Toggles autostashing on double clicking sort button for player.", adminOnly: true)]
+        [Command(name: "sortstash", shortHand: "ss", usage: ".lg ss", description: "Toggles autostashing on double clicking sort button for player.", adminOnly: true)]
         public static void TogglePlayerAutoStash(ChatCommandContext ctx)
         {
             var autoStash = Core.PlayerSettings.ToggleSortStash();
@@ -89,14 +89,14 @@ namespace Logistics.Commands
             ctx.Reply($"Global Pull is {(pull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
-        [Command(name: "craftPull", shortHand: "cr", usage: ".lg cr", description: "Toggles right-clicking on recipes for missing ingredients.", adminOnly: true)]
+        [Command(name: "craftpull", shortHand: "cr", usage: ".lg cr", description: "Toggles right-clicking on recipes for missing ingredients.", adminOnly: true)]
         public static void TogglePlayerAutoPull(ChatCommandContext ctx)
         {
             var autoPull = Core.PlayerSettings.ToggleCraftPull();
             ctx.Reply($"CraftPull is {(autoPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
-        [Command(name: "autoStashMissions", shortHand: "asm", usage: ".lg asm", description: "Toggles autostashing for servant missions.", adminOnly: true)]
+        [Command(name: "autostashmissions", shortHand: "asm", usage: ".lg asm", description: "Toggles autostashing for servant missions.", adminOnly: true)]
         public static void ToggleServantAutoStash(ChatCommandContext ctx)
         {
             var autoStashMissions = Core.PlayerSettings.ToggleAutoStashMissions();
