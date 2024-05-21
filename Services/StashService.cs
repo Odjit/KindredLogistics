@@ -31,6 +31,7 @@ namespace KindredLogistics.Services
         public delegate bool StashFilter(Entity station);
 
         EntityQuery stashQuery;
+        EntityQuery disabledStashQuery;
         readonly Regex receiverRegex;
         readonly Regex senderRegex;
 
@@ -39,15 +40,20 @@ namespace KindredLogistics.Services
         public StashService()
         {
             stashQuery = Core.EntityManager.CreateEntityQuery(StashQuery);
+            disabledStashQuery = Core.EntityManager.CreateEntityQuery(new EntityQueryDesc
+            {
+                All = StashQuery,
+                Options = EntityQueryOptions.IncludeDisabledEntities
+            });
             receiverRegex = new Regex(Const.RECEIVER_REGEX, RegexOptions.Compiled);
             senderRegex = new Regex(Const.SENDER_REGEX, RegexOptions.Compiled);
         }
 
-        public IEnumerable<Entity> GetAllAlliedStashesOnTerritory(Entity character)
+        public IEnumerable<Entity> GetAllAlliedStashesOnTerritory(Entity character, bool includeDisabled = false)
         {
             var territoryIndex = Core.TerritoryService.GetTerritoryId(character);
             var serverGameManager = Core.ServerGameManager;
-            var stashArray = stashQuery.ToEntityArray(Allocator.Temp);
+            NativeArray<Entity> stashArray = includeDisabled ? disabledStashQuery.ToEntityArray(Allocator.Temp) : stashQuery.ToEntityArray(Allocator.Temp);
             try
             {
                 foreach (var stash in stashArray)

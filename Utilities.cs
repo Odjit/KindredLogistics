@@ -36,14 +36,14 @@ namespace KindredLogistics
                 ComponentType.ReadOnly(Il2CppType.Of<User>()),
         ];
 
-        public static void StashServantInventory(Entity servant)
+        public static void StashServantInventory(Entity servant, bool includeDisabled)
         {
             var serverGameManager = Core.ServerGameManager;
             var matches = new Dictionary<PrefabGUID, List<(Entity stash, Entity inventory)>>(capacity: 100);
             (Entity stash, Entity inventory) missionStash = (Entity.Null, Entity.Null);
             try
             {
-                foreach (Entity stash in Core.Stash.GetAllAlliedStashesOnTerritory(servant))
+                foreach (Entity stash in Core.Stash.GetAllAlliedStashesOnTerritory(servant, includeDisabled))
                 {
                     if (stash.Read<NameableInteractable>().Name.ToString().ToLower().Contains("spoils") && missionStash.stash.Equals(Entity.Null)) // store mission stash for later
                     {
