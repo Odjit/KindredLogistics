@@ -50,37 +50,38 @@ namespace KindredLogistics.Services
             }
         }
 
-        public IEnumerable<(int territoryIndex, int group, Entity station)> GetAllReceivingStations(StationFilter filter = null)
+        public IEnumerable<(int group, Entity station)> GetAllReceivingStations(int territoryId)
         {
-            foreach (var result in GetAllGroupStations(receiverRegex, filter))
+            foreach (var result in GetAllGroupStations(receiverRegex, territoryId))
             {
                 yield return result;
             }
         }
 
-        public IEnumerable<(int territoryIndex, int group, Entity station)> GetAllSendingStations(StationFilter filter = null)
+        public IEnumerable<(int group, Entity station)> GetAllSendingStations(int territoryId)
         {
-            foreach(var result in GetAllGroupStations(senderRegex, filter))
+            foreach(var result in GetAllGroupStations(senderRegex, territoryId))
             {
                 yield return result;
             }
         }
 
-        IEnumerable<(int territoryIndex, int group, Entity station)> GetAllGroupStations(Regex groupRegex, StationFilter filter = null)
+        IEnumerable<(int group, Entity station)> GetAllGroupStations(Regex groupRegex, int territoryId)
         {
             var stationArray = stationsQuery.ToEntityArray(Allocator.Temp);
             try
             {
                 foreach (var station in stationArray)
                 {
-                    if (filter != null && !filter(station))
+                    var stationTerritoryId = Core.TerritoryService.GetTerritoryId(station);
+                    if (stationTerritoryId != territoryId)
                         continue;
 
                     var name = station.Read<NameableInteractable>().Name.ToString().ToLower();
                     foreach (Match match in groupRegex.Matches(name))
                     {
                         var group = int.Parse(match.Groups[1].Value);
-                        yield return (Core.TerritoryService.GetTerritoryId(station), group, station);
+                        yield return (group, station);
                     }
                 }
             }

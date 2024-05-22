@@ -11,6 +11,7 @@ namespace KindredLogistics.Services
     internal class TerritoryService
     {
         Dictionary<WorldRegionType, List<Entity>> territories = [];
+        Dictionary<Entity, int> territoryCache = [];
 
         public TerritoryService()
         {
@@ -38,12 +39,21 @@ namespace KindredLogistics.Services
 
         public int GetTerritoryId(Entity entity)
         {
+            if (territoryCache.TryGetValue(entity, out var territoryId))
+            {
+                return territoryId;
+            }
+
             if (entity.Has<CastleHeartConnection>())
             {
                 var heart = entity.Read<CastleHeartConnection>().CastleHeartEntity.GetEntityOnServer();
                 var castleHeart = heart.Read<CastleHeart>();
                 var castleTerritory = castleHeart.CastleTerritoryEntity;
-                return castleTerritory.Read<CastleTerritory>().CastleTerritoryIndex;
+
+                // Cache the territory id of buildings as they don't change
+                territoryId = castleTerritory.Read<CastleTerritory>().CastleTerritoryIndex;
+                territoryCache[entity] = territoryId;
+                return territoryId;
             }
 
             if (entity.Has<TilePosition>())

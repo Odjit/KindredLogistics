@@ -73,37 +73,38 @@ namespace KindredLogistics.Services
             }
         }
 
-        public IEnumerable<(int territoryIndex, int group, Entity station)> GetAllReceivingStashes(StashFilter filter = null)
+        public IEnumerable<(int group, Entity station)> GetAllReceivingStashes(int territoryId)
         {
-            foreach (var result in GetAllGroupStations(receiverRegex, filter))
+            foreach (var result in GetAllGroupStations(receiverRegex, territoryId))
             {
                 yield return result;
             }
         }
 
-        public IEnumerable<(int territoryIndex, int group, Entity station)> GetAllSendingStashes(StashFilter filter = null)
+        public IEnumerable<(int group, Entity station)> GetAllSendingStashes(int territoryId)
         {
-            foreach (var result in GetAllGroupStations(senderRegex, filter))
+            foreach (var result in GetAllGroupStations(senderRegex, territoryId))
             {
                 yield return result;
             }
         }
 
-        IEnumerable<(int territoryIndex, int group, Entity station)> GetAllGroupStations(Regex groupRegex, StashFilter filter = null)
+        IEnumerable<(int group, Entity station)> GetAllGroupStations(Regex groupRegex, int territoryId)
         {
             var stashArray = stashQuery.ToEntityArray(Allocator.Temp);
             try
             {
                 foreach (var stash in stashArray)
                 {
-                    if (filter != null && !filter(stash))
+                    var stashTerritoryId = Core.TerritoryService.GetTerritoryId(stash);
+                    if (stashTerritoryId != territoryId)
                         continue;
 
                     var name = stash.Read<NameableInteractable>().Name.ToString().ToLower();
                     foreach (Match match in groupRegex.Matches(name))
                     {
                         var group = int.Parse(match.Groups[1].Value);
-                        yield return (Core.TerritoryService.GetTerritoryId(stash), group, stash);
+                        yield return (group, stash);
                     }
                 }
             }

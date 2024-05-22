@@ -1,5 +1,7 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils.Collections;
+using Il2CppInterop.Runtime;
 using ProjectM;
+using ProjectM.CastleBuilding;
 using ProjectM.Network;
 using ProjectM.Physics;
 using ProjectM.Scripting;
@@ -7,6 +9,7 @@ using Stunlock.Core;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -24,8 +27,19 @@ namespace KindredLogistics.Services
         const int MIN_TERRITORY_ID = 0;
         const int MAX_TERRITORY_ID = 138;
 
+        EntityQuery castleHeartQuery;
+        Dictionary<int, Entity> territoryToCastleHeart = [];
+
         public ConveyorService()
         {
+            var queryDesc = new EntityQueryDesc
+            {
+                All = new ComponentType[] { new(Il2CppType.Of<CastleHeart>(), ComponentType.AccessMode.ReadOnly) },
+                Options = EntityQueryOptions.Default
+            };
+
+            castleHeartQuery = Core.EntityManager.CreateEntityQuery(queryDesc);
+
             conveyorMonoBehaviour = (new GameObject("ConveyorService")).AddComponent<IgnorePhysicsDebugSystem>();
             conveyorMonoBehaviour.StartCoroutine(UpdateLoop().WrapToIl2Cpp());
         }
@@ -35,9 +49,27 @@ namespace KindredLogistics.Services
             yield return null;
             while (true)
             {
+                var castleHeartEntities = castleHeartQuery.ToEntityArray(Allocator.Temp);
+                try
+                {
+                    foreach (var castleHeartEntity in castleHeartEntities)
+                    {
+                        var castleHeart = castleHeartEntity.Read<CastleHeart>();
+                        var territoryEntity = castleHeart.CastleTerritoryEntity;
+                        var territory = territoryEntity.Read<CastleTerritory>();
+                        territoryToCastleHeart[territory.CastleTerritoryIndex] = castleHeartEntity;
+                    }
+                }
+                finally
+                {
+                    castleHeartEntities.Dispose();
+                }
+
+                yield return null;
                 for (int i = MIN_TERRITORY_ID; i <= MAX_TERRITORY_ID; i++)
                 {
-                    ProcessConveyors(i);
+                    if(Core.PlayerSettings.IsConveyorEnabled(0))
+                        ProcessConveyors(i);
                     yield return null;
                 }
             }
@@ -45,22 +77,26 @@ namespace KindredLogistics.Services
 
         void ProcessConveyors(int territoryId)
         {
-            bool IsProcessingConveyor(Entity entity)
+            if(!territoryToCastleHeart.TryGetValue(territoryId, out var castleHeartEntity)) return;
+
+            // This was cached a while ago so it could be invalid now
+            if (!Core.EntityManager.Exists(castleHeartEntity))
             {
-                var owner = entity.Read<UserOwner>().Owner;
-                if (owner.Equals(NetworkedEntity.Empty)) return false;
-
-                if (!Core.PlayerSettings.IsConveyorEnabled(owner.GetEntityOnServer().Read<User>().PlatformId))
-                    return false;
-
-                return Core.TerritoryService.GetTerritoryId(entity) == territoryId;
+                territoryToCastleHeart.Remove(territoryId);
+                return;
             }
+
+            var userOwner = castleHeartEntity.Read<UserOwner>();
+            if(userOwner.Owner.GetEntityOnServer() == Entity.Null) return;
+
+            var platformID = userOwner.Owner.GetEntityOnServer().Read<User>().PlatformId;
+            if (!Core.PlayerSettings.IsConveyorEnabled(platformID)) return;
 
             var serverGameManager = Core.ServerGameManager;
 
             // Determine what is needed for each station
-            var receivingNeeds = new Dictionary<(int territoryIndex, int group, PrefabGUID item), List<(Entity receiver, int amount)>>();
-            foreach(var (territoryIndex, group, station) in Core.RefinementStations.GetAllReceivingStations(IsProcessingConveyor))
+            var receivingNeeds = new Dictionary<(int group, PrefabGUID item), List<(Entity receiver, int amount)>>();
+            foreach(var (group, station) in Core.RefinementStations.GetAllReceivingStations(territoryId))
             {
                 var receivingStation = station.Read<Refinementstation>();
                 var castleWorkstation = station.Read<CastleWorkstation>();
@@ -92,10 +128,10 @@ namespace KindredLogistics.Services
 
                         if (amountWanted <= 0) continue;
 
-                        if (!receivingNeeds.TryGetValue((territoryIndex, group, requirement.Guid), out var needs))
+                        if (!receivingNeeds.TryGetValue((group, requirement.Guid), out var needs))
                         {
                             needs = [];
-                            receivingNeeds[(territoryIndex, group, requirement.Guid)] = needs;
+                            receivingNeeds[(group, requirement.Guid)] = needs;
                         }
 
                         needs.Add((inputInventoryEntity, amountWanted));
@@ -104,7 +140,7 @@ namespace KindredLogistics.Services
             }
 
             // Determine what is desired by each receiving stash
-            foreach (var (territoryIndex, group, stash) in Core.Stash.GetAllReceivingStashes(IsProcessingConveyor))
+            foreach (var (group, stash) in Core.Stash.GetAllReceivingStashes(territoryId))
             {
                 if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                     continue;
@@ -118,10 +154,10 @@ namespace KindredLogistics.Services
                     foreach (var item in inventoryBuffer)
                     {
                         if (item.ItemType.GuidHash == 0) continue;
-                        if (!receivingNeeds.TryGetValue((territoryIndex, group, item.ItemType), out var needs))
+                        if (!receivingNeeds.TryGetValue((group, item.ItemType), out var needs))
                         {
                             needs = [];
-                            receivingNeeds[(territoryIndex, group, item.ItemType)] = needs;
+                            receivingNeeds[(group, item.ItemType)] = needs;
                         }
 
                         needs.Add((attachedEntity, 1));
@@ -129,17 +165,19 @@ namespace KindredLogistics.Services
                 }
             }
 
+            if(receivingNeeds.Count == 0) return;
+
             // Now distribute from all the sender stations to the stations in need
-            foreach (var (territoryIndex, group, sendingStation) in Core.RefinementStations.GetAllSendingStations(IsProcessingConveyor))
+            foreach (var (group, sendingStation) in Core.RefinementStations.GetAllSendingStations(territoryId))
             {
                 var refinementStation = sendingStation.Read<Refinementstation>();
                 var outputInventoryEntity = refinementStation.OutputInventoryEntity.GetEntityOnServer();
                 if (outputInventoryEntity.Equals(Entity.Null)) continue;
-                DistributeInventory(receivingNeeds, serverGameManager, territoryIndex, group, outputInventoryEntity);
+                DistributeInventory(receivingNeeds, serverGameManager, group, outputInventoryEntity);
             }
 
             // Next distribute from all the send stashes
-            foreach (var (territoryIndex, group, sendingStash) in Core.Stash.GetAllSendingStashes(IsProcessingConveyor))
+            foreach (var (group, sendingStash) in Core.Stash.GetAllSendingStashes(territoryId))
             {
                 if (!serverGameManager.TryGetBuffer<AttachedBuffer>(sendingStash, out var buffer))
                     continue;
@@ -149,20 +187,20 @@ namespace KindredLogistics.Services
                     if (!attachedEntity.Has<PrefabGUID>()) continue;
                     if (!attachedEntity.Read<PrefabGUID>().Equals(StashService.ExternalInventoryPrefab)) continue;
 
-                    DistributeInventory(receivingNeeds, serverGameManager, territoryIndex, group, attachedEntity, retain: 1);
+                    DistributeInventory(receivingNeeds, serverGameManager, group, attachedEntity, retain: 1);
                 }
             }
         }
 
-        void DistributeInventory(Dictionary<(int territoryIndex, int group, PrefabGUID item), List<(Entity receiver, int amount)>> receivingNeeds,
-                                 ServerGameManager serverGameManager, int territoryIndex, int group, Entity inventoryEntity, int retain=0)
+        void DistributeInventory(Dictionary<(int group, PrefabGUID item), List<(Entity receiver, int amount)>> receivingNeeds,
+                                 ServerGameManager serverGameManager, int group, Entity inventoryEntity, int retain=0)
         {
             var inventoryBuffer = inventoryEntity.ReadBuffer<InventoryBuffer>();
             foreach (var item in inventoryBuffer)
             {
                 if (item.ItemType.GuidHash == 0) continue;
                 // Does anyone need this item?
-                if (!receivingNeeds.TryGetValue((territoryIndex, group, item.ItemType), out var needs)) continue;
+                if (!receivingNeeds.TryGetValue((group, item.ItemType), out var needs)) continue;
 
                 // Distribute the item to all the stations in need weighted by the amount needed
                 var amount = item.Amount - retain;
