@@ -254,7 +254,7 @@ namespace KindredLogistics.Services
 
             if (amountStashed.Count > 0)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Stashed items from your inventory to the current territory!");
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "已將身上的物品已放置到所屬的倉庫內！");
             }
             else
             {
