@@ -32,6 +32,8 @@ namespace KindredLogistics.Services
             public bool Conveyor { get; set; }
         }
 
+        PlayerSettings defaultSettings = new();
+
         Dictionary<ulong, PlayerSettings> playerSettings = [];
 
         public PlayerSettingsService()
@@ -75,7 +77,7 @@ namespace KindredLogistics.Services
         public bool IsSortStashEnabled(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
-                return false;
+                settings = defaultSettings;
             return settings.SortStash && playerSettings[GLOBAL_PLAYER_ID].SortStash;
         }
 
@@ -107,7 +109,7 @@ namespace KindredLogistics.Services
         public bool IsCraftPullEnabled(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
-                return false;
+                settings = defaultSettings;
             return settings.CraftPull && playerSettings[GLOBAL_PLAYER_ID].CraftPull;
         }
 
@@ -124,7 +126,7 @@ namespace KindredLogistics.Services
         public bool IsDontPullLastEnabled(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
-                return false;
+                settings = defaultSettings;
             return settings.DontPullLast;
         }
 
@@ -141,7 +143,7 @@ namespace KindredLogistics.Services
         public bool IsAutoStashMissionsEnabled(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
-                return false;
+                settings = defaultSettings;
             return settings.AutoStashMissions && playerSettings[GLOBAL_PLAYER_ID].AutoStashMissions;
         }
 
@@ -158,7 +160,7 @@ namespace KindredLogistics.Services
         public bool IsConveyorEnabled(ulong playerId)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
-                return false;
+                settings = defaultSettings;
             return settings.Conveyor && playerSettings[GLOBAL_PLAYER_ID].Conveyor;
         }
 
