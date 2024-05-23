@@ -37,6 +37,11 @@ namespace KindredLogistics.Services
             }
         }
 
+        public void FlushTerritoryCache()
+        {
+            territoryCache.Clear();
+        }
+
         public int GetTerritoryId(Entity entity)
         {
             if (territoryCache.TryGetValue(entity, out var territoryId))
