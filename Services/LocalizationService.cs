@@ -43,7 +43,7 @@ namespace KindredLogistics.Services
 
         void LoadLocalization()
         {
-            var resourceName = "KindredLogistics.Localization.English.json";
+            var resourceName = "KindredLogistics.Localization.TChinese.json";
 
             var assembly = Assembly.GetExecutingAssembly();
             var stream = assembly.GetManifestResourceStream(resourceName);
