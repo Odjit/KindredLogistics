@@ -14,7 +14,7 @@ namespace Logistics.Commands
             var SteamID = ctx.Event.User.PlatformId;
 
             var autoStash = Core.PlayerSettings.ToggleSortStash(SteamID);
-            ctx.Reply($"SortStash is {(autoStash ? "<color=green>已啟動</color>" : "<color=red>已關閉</color>")}.");
+            ctx.Reply($"遠程存物 {(autoStash ? "<color=green>已啟動</color>" : "<color=red>已關閉</color>")}.");
         }
        
         [Command(name: "遠程取物", shortHand: "cr", usage: ".l cr", description: "右鍵點擊製作道具以查找傳送缺少的材料")]
@@ -23,7 +23,7 @@ namespace Logistics.Commands
             var SteamID = ctx.Event.User.PlatformId;
 
             var autoPull = Core.PlayerSettings.ToggleCraftPull(SteamID);
-            ctx.Reply($"CraftPull is {(autoPull ? "<color=green>已啟動</color>" : "<color=red>已關閉</color>")}.");
+            ctx.Reply($"遠程取物 {(autoPull ? "<color=green>已啟動</color>" : "<color=red>已關閉</color>")}.");
         }
 
         [Command(name: "dontpulllast", shortHand: "dpl", usage: ".l dpl", description: "Toggles the ability to not pull the last item from a container for Logistics commands.", adminOnly: true)]
