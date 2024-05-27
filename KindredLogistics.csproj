@@ -13,11 +13,11 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Data\prefabNames.json" />
-    <None Remove="Localization\English.json" />
+    <None Remove="Localization\TChinese.json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Data\PrefabNames.json" />
-    <EmbeddedResource Include="Localization\English.json" />
+    <EmbeddedResource Include="Localization\TChinese.json" />
   </ItemGroup>
   <ItemGroup>
 	  <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.690" IncludeAssets="compile" />
