@@ -122,7 +122,7 @@ namespace KindredLogistics.Services
             var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
             if (territoryIndex == -1)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash outside territories!");
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "你無法在戶外使用快速存物!請回到自己的領地");
                 return;
             }
 
@@ -161,7 +161,7 @@ namespace KindredLogistics.Services
 
             if (!foundStash)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash as no available stashes found in your current territory!");
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "無法存入倉庫，因為在您目前的領地內找不到可用的倉庫!");
                 return;
             }
 
