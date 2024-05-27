@@ -126,7 +126,7 @@ namespace Logistics.Commands
 
     public static class AdditionalCommands
     {
-        [Command(name: "stash", description: "Stashes all items in your inventory.")]
+        [Command(name: "存入倉庫", description: "你背包的道具以幫您傳送回該所屬的倉庫了.")]
         public static void StashInventory(ChatCommandContext ctx)
         {
             Core.Stash.StashCharacterInventory(ctx.Event.SenderCharacterEntity);
