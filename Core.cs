@@ -18,6 +18,7 @@ internal static class Core
 
     // V Rising systems
 	public static EntityManager EntityManager { get; } = Server.EntityManager;
+    public static GameDataSystem GameDataSystem { get; } = Server.GetExistingSystemManaged<GameDataSystem>();
     public static PrefabCollectionSystem PrefabCollectionSystem { get; internal set; }
     public static ServerGameSettingsSystem ServerGameSettingsSystem { get; internal set; }
     public static ServerScriptMapper ServerScriptMapper { get; internal set; }

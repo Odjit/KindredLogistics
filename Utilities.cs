@@ -136,6 +136,46 @@ namespace KindredLogistics
             return false;
         }
 
+        public static bool TransferItemEntites(Entity outputInventory, Entity inputInventory, PrefabGUID itemPrefab, int transferAmount, ref int startInputSlot, out int amountTransferred)
+        {
+            var outputBuffer = outputInventory.ReadBuffer<InventoryBuffer>();
+            var inputBuffer = inputInventory.ReadBuffer<InventoryBuffer>();
+
+            amountTransferred = 0;
+
+            for (int i = 0; i < outputBuffer.Length; i++)
+            {
+                var outputItem = outputBuffer[i];
+                if (!outputItem.ItemType.Equals(itemPrefab)) continue;
+
+                while (startInputSlot < inputBuffer.Length)
+                {
+                    var inputSlot = inputBuffer[startInputSlot];
+                    if (!inputSlot.ItemType.Equals(PrefabGUID.Empty))
+                    {
+                        startInputSlot++;
+                        continue;
+                    }
+                    inputBuffer[startInputSlot] = outputItem;
+                    outputBuffer[i] = inputSlot;
+                    startInputSlot++;
+                    amountTransferred++;
+                    break;
+                }
+
+                if (amountTransferred >= transferAmount)
+                {
+                    return false;
+                }
+
+                if (inputBuffer.Length <= startInputSlot)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static int TransferItems(ServerGameManager serverGameManager, Entity outputInventory, Entity inputInventory, PrefabGUID itemGuid, int transferAmount)
         {
             if (serverGameManager.TryRemoveInventoryItem(outputInventory, itemGuid, transferAmount))

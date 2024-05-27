@@ -19,7 +19,13 @@ namespace KindredLogistics.Services
                 ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Pulling is globally disabled.");
                 return;
             }
-            
+
+            if(!Core.GameDataSystem.ItemHashLookupMap.TryGetValue(item, out var itemData))
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Invalid item specified.");
+                return;
+            }
+
             var entityManager = Core.EntityManager;
             var serverGameManager = Core.ServerGameManager;
             var territoryIndex = Core.TerritoryService.GetTerritoryId(character);
@@ -35,10 +41,14 @@ namespace KindredLogistics.Services
                 return;
             }
 
+            var isAnItemEntity = !itemData.Entity.Equals(Entity.Null);
+
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
 
             var quantityRemaining = quantity;
             var foundStash = false;
+            var playerInventorySlot = 0;
+            var inventoryFull = false;
             foreach (var stash in Core.Stash.GetAllAlliedStashesOnTerritory(character))
             {
                 if (quantityRemaining <= 0) break;
@@ -60,12 +70,28 @@ namespace KindredLogistics.Services
                     if (stashItemCount <= 0) continue;
 
                     var transferAmount = Mathf.Min(stashItemCount, quantityRemaining);
-                    transferAmount = Utilities.TransferItems(serverGameManager, attachedEntity, inventory, item, transferAmount);
+
+                    if (isAnItemEntity)
+                    {
+                        if (Utilities.TransferItemEntites(attachedEntity, inventory, item, transferAmount, ref playerInventorySlot, out transferAmount))
+                        {
+                            inventoryFull = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        transferAmount = Utilities.TransferItems(serverGameManager, attachedEntity, inventory, item, transferAmount);
+                    }
                     if (transferAmount <= 0)
+                    {
+                        if (inventoryFull)
+                            break;
                         continue;
+                    }
                     ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                     quantityRemaining -= transferAmount;
-                    if (quantityRemaining <= 0)
+                    if (quantityRemaining <= 0 || inventoryFull)
                         break;
                 }
             }
@@ -76,6 +102,9 @@ namespace KindredLogistics.Services
                 ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Pulled {quantity}x {item.PrefabName()} from containers.");
             else
                 ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Was able to only pull {quantity - quantityRemaining}x out of desired {quantity}x {item.PrefabName()} from containers.");
+
+            if (inventoryFull)
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, "Inventory is full, unable to pull more items.");
 
         }
 

@@ -205,7 +205,6 @@ namespace KindredLogistics.Services
                         var success = false;
                         foreach (var stashEntry in stashEntries)
                         {
-
                             try
                             {
                                 var stashInventoryBuffer = stashEntry.inventory.ReadBuffer<InventoryBuffer>();
