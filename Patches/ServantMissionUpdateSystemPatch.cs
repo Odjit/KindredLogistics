@@ -21,20 +21,13 @@ public static class ServantMissionUpdateSystemPatch
         {
             foreach (var mission in missions)
             {
-                bool includeDisabled = false;
                 var owner = mission.MissionOwner.Read<UserOwner>().Owner._Entity;
                 var steamId = owner.Read<User>().PlatformId;
                 if (!Core.PlayerSettings.IsAutoStashMissionsEnabled(steamId)) continue;
-                foreach (Entity entity in servants)
-                {
-                    if (entity.Has<DisabledDueToNoPlayersInRange>()) HandleDisabled(entity, true);
-                    missionServants.Add(entity);
-                }
                 
                 foreach (var servant in missionServants)
                 {
-                    if (wasDisabled.TryGetValue(servant, out var disabled) && disabled) includeDisabled = true;
-                    Utilities.StashServantInventory(servant, includeDisabled);
+                    Utilities.StashServantInventory(servant);
                     RestoreDisabled(servant);
                 }
             }

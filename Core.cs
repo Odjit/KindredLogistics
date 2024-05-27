@@ -6,6 +6,7 @@ using ProjectM;
 using ProjectM.Physics;
 using ProjectM.Scripting;
 using System.Collections;
+using System.Runtime.CompilerServices;
 using Unity.Entities;
 using UnityEngine;
 
@@ -42,6 +43,11 @@ internal static class Core
     static bool hasInitialized;
 
     static MonoBehaviour monoBehaviour;
+
+    public static void LogException(System.Exception e, [CallerMemberName] string caller = null)
+    {
+        Core.Log.LogError($"Failure in {caller}\nMessage: {e.Message} Inner:{e.InnerException?.Message}\n\nStack: {e.StackTrace}\nInner Stack: {e.InnerException?.StackTrace}");
+    }
 
     public static void Initialize()
     {

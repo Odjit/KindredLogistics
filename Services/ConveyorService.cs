@@ -68,8 +68,17 @@ namespace KindredLogistics.Services
                 yield return null;
                 for (int i = MIN_TERRITORY_ID; i <= MAX_TERRITORY_ID; i++)
                 {
-                    if(Core.PlayerSettings.IsConveyorEnabled(0))
-                        ProcessConveyors(i);
+                    if (Core.PlayerSettings.IsConveyorEnabled(0))
+                    {
+                        try
+                        {
+                            ProcessConveyors(i);
+                        }
+                        catch (System.Exception e)
+                        {
+                            Core.LogException(e, $"ProcessConveyors({i})");
+                        }
+                    }
                     yield return null;
                 }
             }
