@@ -258,20 +258,20 @@ namespace KindredLogistics.Services
             }
             else
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "No items were able to stash from your inventory!");
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "你身上沒有道具可以存入所屬的倉庫內!");
             }
 
             foreach(var ((stash, item), amount) in amountStashed)
             {
                 ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
-                                       $"Stashed <color=white>{amount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stash.EntityName()}</color>");
+                                       $"存入 <color=white>{amount}</color> 個 <color=green>{item.PrefabName()}</color> 到 <color=#FFC0CB>{stash.EntityName()}</color>");
             }
 
             foreach (var stashedItemType in transferredItems)
             {
                 if (amountUnstashed.TryGetValue(stashedItemType, out var amount))
                     ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
-                                                       $"Unable to stash <color=white>{amount}</color>x <color=green>{stashedItemType.PrefabName()}</color> due to insufficient space in stashes!");
+                                                       $"無法存入 <color=white>{amount}</color> 個 <color=green>{stashedItemType.PrefabName()}</color> 到倉庫,因為倉庫空間不足！");
             }
         }
 
@@ -285,11 +285,11 @@ namespace KindredLogistics.Services
             var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
             if (territoryIndex == -1)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to search for items outside territories!");
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "無法搜尋區域外的道具!");
                 return;
             }
 
-            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Find Item Report\n--------------------------------");
+            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "尋找道具項目\n--------------------------------");
             var serverGameManager = Core.ServerGameManager;
             var foundStash = false;
             var totalFound = 0;
