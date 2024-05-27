@@ -63,7 +63,7 @@ namespace KindredLogistics.Services
                     transferAmount = Utilities.TransferItems(serverGameManager, attachedEntity, inventory, item, transferAmount);
                     if (transferAmount <= 0)
                         continue;
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
+                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> 已取出 , 來自於 <color=#FFC0CB>{stash.EntityName()}</color>");
                     quantityRemaining -= transferAmount;
                     if (quantityRemaining <= 0)
                         break;
@@ -146,7 +146,7 @@ namespace KindredLogistics.Services
             {
                 ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find any materials for crafting additional <color=yellow>{recipeName}</color>!");
             }
-            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Have enough materials for crafting <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
+            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"剛好有足夠的材料可以製作 <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color> 個 <color=yellow>{recipeName}</color>.");
         }
 
         public static void HandleForgePull(Entity character, Entity workstation, Entity item)
@@ -273,7 +273,7 @@ namespace KindredLogistics.Services
             if (!fetchedMaterials)
             {
                 fetchedMaterials = true;
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching materials for {fetchMessage} <color=yellow>{recipeName}</color>...");
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"已取得材料用於製作 {fetchMessage} <color=yellow>{recipeName}</color>...");
             }
 
             requiredAmount -= currentAmount;
@@ -312,7 +312,7 @@ namespace KindredLogistics.Services
             if (requiredAmount > 0)
             {
                 fetchedForAnother = false;
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find <color=white>{requiredAmount}</color>x <color=green>{requiredItem.PrefabName()}</color>");
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"目前還缺 <color=white>{requiredAmount}</color> 個 <color=green>{requiredItem.PrefabName()}</color>");
             }
         }
     }
