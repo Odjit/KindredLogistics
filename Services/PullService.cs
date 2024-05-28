@@ -140,11 +140,11 @@ namespace KindredLogistics.Services
             {
                 RetrieveRequirement(character, workstation, user, entityManager, ref serverGameManager, recipeName, dontPullLast, inventory,
                     workstationInventory, ref fetchedForAnother, ref fetchedMaterials, requirement.Guid, requirement.Amount, desiredRecipeMultiple,
-                    recipeReduction, "crafting");
+                    recipeReduction, " ");
             }
             if (!fetchedMaterials)
             {
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find any materials for crafting additional <color=yellow>{recipeName}</color>!");
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"找不到任何用於製作的材料 <color=yellow>{recipeName}</color>!");
             }
             ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"剛好有足夠的材料可以製作 <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color> 個 <color=yellow>{recipeName}</color>.");
         }
@@ -155,7 +155,7 @@ namespace KindredLogistics.Services
             var entityManager = Core.EntityManager;
             if (!InventoryUtilities.TryGetInventoryEntity(entityManager, character, out Entity inventory))
             {
-                Core.Log.LogWarning($"No inventory found for character {character}.");
+                Core.Log.LogWarning($"沒有找到這個角色的倉庫 {character}.");
                 return;
             }
 
