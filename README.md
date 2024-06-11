@@ -92,6 +92,8 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
   - Find item beams will only be present for one beam per chest. So if two players are searching planks on the same plot, only one will keep the beam.
   - Check what you have enabled with `.l s` if you feel a system isn't working.
   - Stash will only send out items that exactly match that which you have stored. If it doesn't stash, you don't have a chest with that item in it, or the chest is full.
+  - If a search query for an item returns multiple results, you can select it with :index.
+  - Example: `.pull (item:1) (quantity)` to get the first result when more than one result is returned.
     
  
 
