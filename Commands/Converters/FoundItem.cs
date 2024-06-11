@@ -12,6 +12,9 @@ class FoundItemConverter : CommandArgumentConverter<FoundItem>
 {
     public override FoundItem Parse(ICommandContext ctx, string input)
     {
+        string[] split = input.Split(":");
+        input = split[0];
+
         if (TryGet(input, out var result)) return result;
 
         List<PrefabGUID> searchResults = [];
@@ -23,51 +26,23 @@ class FoundItemConverter : CommandArgumentConverter<FoundItem>
             }
         }
 
-        if (searchResults.Count == 1)
-        {
-            return new FoundItem(searchResults[0]);
-        }
 
-        var lengthOfFail = 60 + "\n...".Length;
-
-        if (searchResults.Count > 1)
+        if (searchResults.Count == 0)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine("Multiple results be more specific");
-            foreach (var prefab in searchResults)
+            // Try a double search splitting the input
+            for (var i = 3; i < input.Length; ++i)
             {
-                var name = prefab.PrefabName();
-                if (sb.Length + name.Length + lengthOfFail >= Core.MAX_REPLY_LENGTH)
+                var inputOne = input[..i];
+                var inputTwo = input[i..];
+                foreach (var kvp in itemNamesToPrefabs)
                 {
-                    sb.AppendLine("...");
-                    throw ctx.Error(sb.ToString());
-                }
-                else
-                {
-                    sb.AppendLine(name);
+                    if (kvp.Key.Contains(inputOne, StringComparison.OrdinalIgnoreCase) &&
+                        kvp.Key.Contains(inputTwo, StringComparison.OrdinalIgnoreCase))
+                    {
+                        searchResults.Add(kvp.Value);
+                    }
                 }
             }
-            throw ctx.Error(sb.ToString());
-        }
-
-        // Try a double search splitting the input
-        for (var i = 3; i < input.Length; ++i)
-        {
-            var inputOne = input[..i];
-            var inputTwo = input[i..];
-            foreach (var kvp in itemNamesToPrefabs)
-            {
-                if (kvp.Key.Contains(inputOne, StringComparison.OrdinalIgnoreCase) &&
-                    kvp.Key.Contains(inputTwo, StringComparison.OrdinalIgnoreCase))
-                {
-                    searchResults.Add(kvp.Value);
-                }
-            }
-        }
-
-        if (searchResults.Count == 1)
-        {
-            return new FoundItem(searchResults[0]);
         }
 
         if (searchResults.Count == 0)
@@ -100,8 +75,24 @@ class FoundItemConverter : CommandArgumentConverter<FoundItem>
             return new FoundItem(searchResults[0]);
         }
 
+        // if a index is given try to return it with the index
+        if (searchResults.Count > 1 && split.Length == 2)
+        {
+            int number;
+            if (!int.TryParse(split[1], out number))
+            {
+                throw ctx.Error("Could not covnert index: " + split[1] + " to a number");
+            }
+            if ((number - 1) > searchResults.Count || (number - 1) < 0)
+            {
+                throw ctx.Error("Index " + number + " is out of bounds for search result size " + searchResults.Count);
+            }
+            return new FoundItem(searchResults[number - 1]);
+        }
+        var lengthOfFail = 60 + "\n...".Length;
         if (searchResults.Count > 1)
         {
+
             var sb = new StringBuilder();
             sb.AppendLine("Multiple results be more specific");
             foreach (var prefab in searchResults)
@@ -117,6 +108,7 @@ class FoundItemConverter : CommandArgumentConverter<FoundItem>
                     sb.AppendLine(name);
                 }
             }
+
             throw ctx.Error(sb.ToString());
         }
 
