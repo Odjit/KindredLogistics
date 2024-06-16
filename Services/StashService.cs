@@ -215,6 +215,15 @@ namespace KindredLogistics.Services
 
                                     transferredItems.Add(item);
                                     stashInventoryBuffer[j] = itemEntry;
+
+                                    var itemEntity = itemEntry.ItemEntity.GetEntityOnServer();
+                                    if (itemEntity.Has<InventoryItem>())
+                                    {
+                                        var inventoryItem = itemEntity.Read<InventoryItem>();
+                                        inventoryItem.ContainerEntity = stashEntry.stash;
+                                        itemEntity.Write(inventoryItem);
+                                    }
+
                                     if (amountStashed.TryGetValue((stashEntry.stash, item), out var amount))
                                         amountStashed[(stashEntry.stash, item)] = amount + 1;
                                     else

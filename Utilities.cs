@@ -158,6 +158,15 @@ namespace KindredLogistics
                     }
                     inputBuffer[startInputSlot] = outputItem;
                     outputBuffer[i] = inputSlot;
+
+                    var itemEntity = outputItem.ItemEntity.GetEntityOnServer();
+                    if (itemEntity.Has<InventoryItem>())
+                    {
+                        var inventoryItem = itemEntity.Read<InventoryItem>();
+                        inventoryItem.ContainerEntity = inputInventory;
+                        itemEntity.Write(inventoryItem);
+                    }
+
                     startInputSlot++;
                     amountTransferred++;
                     break;

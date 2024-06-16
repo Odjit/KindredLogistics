@@ -29,6 +29,9 @@ public class CraftingPatch
 
                         var stopCraftEvent = entity.Read<StopCraftItemEvent>();
                         Entity station = fromCharacter.Character.Read<Interactor>().Target; // station entity
+
+                        if (!station.Has<QueuedWorkstationCraftAction>()) continue;
+
                         PrefabGUID prefabGUID = stopCraftEvent.RecipeGuid;
 
                         var alreadyCraftingRecipe = false;
@@ -70,6 +73,9 @@ public class CraftingPatch
                     if (!Core.PlayerSettings.IsCraftPullEnabled(steamId)) continue;
 
                     Entity station = fromCharacter.Character.Read<Interactor>().Target; // station entity
+
+                    if (!station.Has<Forge_Shared>()) continue;
+
                     Forge_Shared forge_Shared = station.Read<Forge_Shared>();
                     Entity itemEntity = forge_Shared.ItemEntity._Entity;
 

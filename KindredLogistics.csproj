@@ -13,10 +13,12 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Data\prefabNames.json" />
+    <None Remove="LICENSE" />
     <None Remove="Localization\English.json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Data\PrefabNames.json" />
+    <EmbeddedResource Include="LICENSE" />
     <EmbeddedResource Include="Localization\English.json" />
   </ItemGroup>
   <ItemGroup>

@@ -52,13 +52,17 @@ namespace KindredLogistics.Services
             if (entity.Has<CastleHeartConnection>())
             {
                 var heart = entity.Read<CastleHeartConnection>().CastleHeartEntity.GetEntityOnServer();
-                var castleHeart = heart.Read<CastleHeart>();
-                var castleTerritory = castleHeart.CastleTerritoryEntity;
 
-                // Cache the territory id of buildings as they don't change
-                territoryId = castleTerritory.Read<CastleTerritory>().CastleTerritoryIndex;
-                territoryCache[entity] = territoryId;
-                return territoryId;
+                if (heart != Entity.Null)
+                {
+                    var castleHeart = heart.Read<CastleHeart>();
+                    var castleTerritory = castleHeart.CastleTerritoryEntity;
+
+                    // Cache the territory id of buildings as they don't change
+                    territoryId = castleTerritory.Read<CastleTerritory>().CastleTerritoryIndex;
+                    territoryCache[entity] = territoryId;
+                    return territoryId;
+                }
             }
 
             if (entity.Has<TilePosition>())
