@@ -30,6 +30,7 @@ namespace KindredLogistics.Services
             public bool DontPullLast { get; set; }
             public bool AutoStashMissions { get; set; }
             public bool Conveyor { get; set; }
+            public bool SilentStash { get; set; }
         }
 
         PlayerSettings defaultSettings = new();
@@ -162,6 +163,23 @@ namespace KindredLogistics.Services
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 settings = defaultSettings;
             return settings.Conveyor && playerSettings[GLOBAL_PLAYER_ID].Conveyor;
+        }
+
+        public bool ToggleSilentStash(ulong playerId = GLOBAL_PLAYER_ID)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                settings = new PlayerSettings();
+            settings.SilentStash = !settings.SilentStash;
+            playerSettings[playerId] = settings;
+            SaveSettings();
+            return settings.SilentStash;
+        }
+
+        public bool IsSilentStashEnabled(ulong playerId)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                settings = defaultSettings;
+            return settings.SilentStash;
         }
 
         public bool ToggleConveyor(ulong playerId = GLOBAL_PLAYER_ID)

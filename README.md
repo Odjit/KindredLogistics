@@ -34,6 +34,9 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
 - `.logistics conveyor`
   - Turns on or off your personal ability to set up linked inventories for converying crafting materials.
   - Shortcut: *.l co*
+- `.logistics silentstash`
+  - Turns on or off the ability to have stash not report where you stash items.
+  - Shortcut: *.l ssh*
 - `.logistics settings`
   - Shows the enabled/disabled status of the above systems.
   - Shortcut: *.l s*

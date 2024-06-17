@@ -53,6 +53,15 @@ namespace Logistics.Commands
             ctx.Reply($"Conveyor is {(conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
+        [Command(name: "silentstash", shortHand: "ssh", description: "Toggles the ability to not send messages when stashing items about where they go.")]
+        public static void ToggleSilentStash(ChatCommandContext ctx)
+        {
+            var SteamID = ctx.Event.User.PlatformId;
+
+            var silentStash = Core.PlayerSettings.ToggleSilentStash(SteamID);
+            ctx.Reply($"SilentStash is {(silentStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
         [Command(name: "settings", shortHand: "s", usage: ".l s", description: "Displays current settings.")]
         public static void DisplaySettings(ChatCommandContext ctx)
         {
@@ -66,7 +75,8 @@ namespace Logistics.Commands
                       $"CraftPull{(globalSettings.CraftPull ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.CraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"DontPullLast: {(settings.DontPullLast ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"AutoStashMissions{(globalSettings.AutoStashMissions ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
+                      $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"SilentStash: {(settings.SilentStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
                       );
         }  
     }

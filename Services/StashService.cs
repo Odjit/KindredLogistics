@@ -300,17 +300,20 @@ namespace KindredLogistics.Services
                     ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "No items were able to stash from your inventory!");
                 }
 
-                foreach (var ((stash, item), amount) in amountStashed)
+                if (!Core.PlayerSettings.IsSilentStashEnabled(user.PlatformId))
                 {
-                    ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
-                                           $"Stashed <color=white>{amount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stash.EntityName()}</color>");
-                }
-
-                foreach (var stashedItemType in transferredItems)
-                {
-                    if (amountUnstashed.TryGetValue(stashedItemType, out var amount))
+                    foreach (var ((stash, item), amount) in amountStashed)
+                    {
                         ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
-                                                           $"Unable to stash <color=white>{amount}</color>x <color=green>{stashedItemType.PrefabName()}</color> due to insufficient space in stashes!");
+                                               $"Stashed <color=white>{amount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stash.EntityName()}</color>");
+                    }
+
+                    foreach (var stashedItemType in transferredItems)
+                    {
+                        if (amountUnstashed.TryGetValue(stashedItemType, out var amount))
+                            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
+                                                               $"Unable to stash <color=white>{amount}</color>x <color=green>{stashedItemType.PrefabName()}</color> due to insufficient space in stashes!");
+                    }
                 }
             }
             catch (Exception e)
