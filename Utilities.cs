@@ -86,7 +86,7 @@ namespace KindredLogistics
                 for (int i = 0; i < inventoryBuffer.Length; i++)
                 {
                     var item = inventoryBuffer[i].ItemType;
-                    if (!matches.TryGetValue(item, out var stashEntries))
+                    if (!matches.TryGetValue(item, out var stashEntries)) // if no match straight to spoils
                     {
                         if (missionStash.stash.Equals(Entity.Null)) continue;
                         int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
@@ -94,14 +94,16 @@ namespace KindredLogistics
                         continue;
                     }
 
-                    foreach (var stashEntry in stashEntries)
+                    foreach (var stashEntry in stashEntries) // if match stash first, then spoils if no room
                     {
                         int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                        TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount);
-                        int remainingAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                        if (remainingAmount > 0 && !missionStash.stash.Equals(Entity.Null))
+                        int amountTransferred = TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount); // returns amount transferred
+                        int remaining = transferAmount - amountTransferred;
+                        if (remaining > 0 && !missionStash.stash.Equals(Entity.Null)) // send remaining to spoils
                         {
-                            TransferItems(serverGameManager, inventory, missionStash.inventory, item, remainingAmount);
+                            //Core.Log.LogInfo($"Transferred {amountTransferred} to matching stash with {remaining} left for spoils...");
+                            int remainingAmountTransferred = TransferItems(serverGameManager, inventory, missionStash.inventory, item, remaining);
+                            //Core.Log.LogInfo($"Transferred {remainingAmountTransferred} to spoils. Remaining in inventory: {serverGameManager.GetInventoryItemCount(inventory, item)}");
                         }
                     }
                     
