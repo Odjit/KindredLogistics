@@ -178,6 +178,59 @@ namespace KindredLogistics.Services
             ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Have enough materials for crafting <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
         }
 
+        public static void HandleRepairPull(Entity character, PrefabGUID recipe)
+        {
+            var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();
+            var entityManager = Core.EntityManager;
+
+            if (Core.PlayerSettings.IsPullEnabled())
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Pulling is globally disabled.");
+                return;
+            }
+
+            var territoryIndex = Core.TerritoryService.GetTerritoryId(character);
+
+            if (territoryIndex == -1)
+            {
+                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to pull outside territories!");
+                return;
+            }
+
+            if (!InventoryUtilities.TryGetInventoryEntity(entityManager, character, out Entity inventory))
+            {
+                Core.Log.LogWarning($"No inventory found for character {character}.");
+                return;
+            }
+
+            var serverGameManager = Core.ServerGameManager;
+           
+
+            // Determine the multiple of the recipe we currently have then we will try to fetch up to one more recipe's worth of materials
+            var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
+            var requirements = recipeEntity.ReadBuffer<ItemRepairBuffer>();
+
+            var recipeName = recipeEntity.Read<PrefabGUID>().LookupName();
+
+            var recipeOutputBuffer = recipeEntity.ReadBuffer<RecipeOutputBuffer>();
+            if (recipeOutputBuffer.Length > 0)
+            {
+                var recipeOutput = recipeOutputBuffer[0];
+                recipeName = recipeOutput.Guid.PrefabName();
+            }
+
+            var fetchedForAnother = true;
+            var fetchedMaterials = false;
+            var desiredRecipeMultiple = 1;
+            var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
+
+            foreach (var requirement in requirements)
+            {
+                RetrieveRequirement(character, Entity.Null, user, entityManager, ref serverGameManager, recipeName, dontPullLast, inventory,
+                    inventory, ref fetchedForAnother, ref fetchedMaterials, requirement.Guid, requirement.Stacks, desiredRecipeMultiple,
+                    1, "repairing");
+            }
+        }
         public static void HandleForgePull(Entity character, Entity workstation, Entity item)
         {
             var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();

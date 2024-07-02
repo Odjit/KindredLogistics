@@ -96,4 +96,63 @@ public class CraftingPatch
             }
         }
     }
+
+    [HarmonyPatch(typeof(RepairItemSystem), nameof(RepairItemSystem.OnUpdate))]
+    public static class RepairItemSystemPatch
+    {
+        public static void Prefix(RepairItemSystem __instance)
+        {
+            NativeArray<Entity> entities = __instance.__query_1831453052_0.ToEntityArray(Allocator.Temp);
+            try
+            {
+                foreach (Entity entity in entities)
+                {
+                    RepairItemEvent repairItemEvent = entity.Read<RepairItemEvent>();
+                    int slot = repairItemEvent.Slot;
+                    FromCharacter fromCharacter = entity.Read<FromCharacter>();
+                    if (InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, fromCharacter.Character, out Entity inventory) && Core.ServerGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var inventoryBuffer))
+                    {
+                        if (inventoryBuffer[slot].ItemEntity._Entity.Has<Durability>())
+                        {
+                            Durability durability = inventoryBuffer[slot].ItemEntity._Entity.Read<Durability>();
+                            if (durability.IsBroken)
+                            {
+                                PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe);
+                            }
+                        }
+                    }     
+                }
+            }
+            finally
+            {
+                entities.Dispose();
+            }
+            entities = __instance.__query_1831453052_1.ToEntityArray(Allocator.Temp);
+            try
+            {
+                foreach (Entity entity in entities)
+                {
+                    RepairEquippedItemEvent repairItemEvent = entity.Read<RepairEquippedItemEvent>();
+                    EquipmentType equipmentSlot = repairItemEvent.EquipmentType;
+                    FromCharacter fromCharacter = entity.Read<FromCharacter>();
+                    Equipment equipment = fromCharacter.Character.Read<Equipment>();
+                    if (InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, fromCharacter.Character, out Entity inventory) && Core.ServerGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var inventoryBuffer))
+                    {
+                        if (equipment.GetEquipmentEntity(equipmentSlot)._Entity.Has<Durability>())
+                        {
+                            Durability durability = equipment.GetEquipmentEntity(equipmentSlot)._Entity.Read<Durability>();
+                            if (durability.IsBroken)
+                            {
+                                PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe);
+                            }
+                        }
+                    }     
+                }
+            }
+            finally
+            {
+                entities.Dispose();
+            }
+        }
+    }
 }

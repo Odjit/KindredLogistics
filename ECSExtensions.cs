@@ -15,7 +15,7 @@ public static class ECSExtensions
     {
         // Get the ComponentType for T
         var ct = new ComponentType(Il2CppType.Of<T>());
-
+        
         // Marshal the component data to a byte array
         byte[] byteArray = StructureToByteArray(componentData);
 
@@ -107,8 +107,5 @@ public static class ECSExtensions
         var ct = new ComponentType(Il2CppType.Of<T>());
         EntityManager.RemoveComponent(entity, ct);
     }
-    
-
-
 }
 

@@ -63,7 +63,6 @@ namespace KindreddLogistics.Patches
             {
                 entities.Dispose();
             }
-        }
-        
+        }       
     }
 }
