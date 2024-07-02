@@ -226,10 +226,11 @@ namespace KindredLogistics.Services
             var fetchedMaterials = false;
             var desiredRecipeMultiple = 1;
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
+            var silentPull = Core.PlayerSettings.IsSilentPullEnabled(user.PlatformId);
 
             foreach (var requirement in requirements)
             {
-                RetrieveRequirement(character, Entity.Null, user, entityManager, ref serverGameManager, recipeName, dontPullLast, inventory,
+                RetrieveRequirement(character, Entity.Null, user, entityManager, ref serverGameManager, recipeName, dontPullLast, silentPull, inventory,
                     inventory, ref fetchedForAnother, ref fetchedMaterials, requirement.Guid, requirement.Stacks, desiredRecipeMultiple,
                     1, "repairing");
             }
