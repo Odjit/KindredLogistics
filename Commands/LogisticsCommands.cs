@@ -53,6 +53,15 @@ namespace Logistics.Commands
             ctx.Reply($"Conveyor is {(conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
+        [Command(name: "silentpull", shortHand: "sp", description: "Toggles the ability to not send messages when pulling about where they came from.")]
+        public static void ToggleSilentCraftPull(ChatCommandContext ctx)
+        {
+            var SteamID = ctx.Event.User.PlatformId;
+
+            var silentCraftPull = Core.PlayerSettings.ToggleSilentPull(SteamID);
+            ctx.Reply($"SilentPull is {(silentCraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
         [Command(name: "silentstash", shortHand: "ssh", description: "Toggles the ability to not send messages when stashing items about where they go.")]
         public static void ToggleSilentStash(ChatCommandContext ctx)
         {
@@ -76,6 +85,7 @@ namespace Logistics.Commands
                       $"DontPullLast: {(settings.DontPullLast ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"AutoStashMissions{(globalSettings.AutoStashMissions ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"SilentPull: {(settings.SilentPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"SilentStash: {(settings.SilentStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
                       );
         }  

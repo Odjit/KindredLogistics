@@ -44,6 +44,7 @@ namespace KindredLogistics.Services
             var isAnItemEntity = !itemData.Entity.Equals(Entity.Null);
 
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
+            var silentPull = Core.PlayerSettings.IsSilentPullEnabled(user.PlatformId);
 
             var quantityRemaining = quantity;
             var foundStash = false;
@@ -89,7 +90,8 @@ namespace KindredLogistics.Services
                             break;
                         continue;
                     }
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
+                    if (!silentPull)
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                     quantityRemaining -= transferAmount;
                     if (quantityRemaining <= 0 || inventoryFull)
                         break;
@@ -165,9 +167,10 @@ namespace KindredLogistics.Services
             var fetchedMaterials = false;
             var desiredRecipeMultiple = currentRecipeMultiple + 1;
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
+            var silentPull = Core.PlayerSettings.IsSilentPullEnabled(user.PlatformId);
             foreach (var requirement in requirements)
             {
-                RetrieveRequirement(character, workstation, user, entityManager, ref serverGameManager, recipeName, dontPullLast, inventory,
+                RetrieveRequirement(character, workstation, user, entityManager, ref serverGameManager, recipeName, dontPullLast, silentPull, inventory,
                     workstationInventory, ref fetchedForAnother, ref fetchedMaterials, requirement.Guid, requirement.Amount, desiredRecipeMultiple,
                     recipeReduction, "crafting");
             }
@@ -228,9 +231,10 @@ namespace KindredLogistics.Services
             var fetchedMaterials = false;
             var recipeName = item.Read<PrefabGUID>().PrefabName();
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
+            var silentPull = Core.PlayerSettings.IsSilentPullEnabled(user.PlatformId);
             foreach (var requirement in requirements)
             {
-                RetrieveRequirement(character, workstation, user, entityManager, ref serverGameManager, recipeName, dontPullLast, inventory,
+                RetrieveRequirement(character, workstation, user, entityManager, ref serverGameManager, recipeName, dontPullLast, silentPull, inventory,
                     workstationInventory, ref fetchedForAnother, ref fetchedMaterials, requirement.ItemId, requirement.Amount, desiredRecipeMultiple, recipeReduction, "forging");
             }
             if (!fetchedMaterials)
@@ -278,7 +282,8 @@ namespace KindredLogistics.Services
             var desiredRecipeMultiple = currentRecipeMultiple + 1;
             var recipeName = item.Read<PrefabGUID>().PrefabName();
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
-            RetrieveRequirement(character, workstation, user, entityManager, ref serverGameManager, recipeName, dontPullLast, inventory,
+            var silentPull = Core.PlayerSettings.IsSilentPullEnabled(user.PlatformId);
+            RetrieveRequirement(character, workstation, user, entityManager, ref serverGameManager, recipeName, dontPullLast, silentPull, inventory,
                         workstationInventory, ref fetchedForAnother, ref fetchedMaterials, requirement.TierPrefab, 1, desiredRecipeMultiple, 1, "upgrading");
 
             if (!fetchedMaterials)
@@ -289,7 +294,7 @@ namespace KindredLogistics.Services
         }
 
         static void RetrieveRequirement(Entity character, Entity workstation, User user, EntityManager entityManager, ref ServerGameManager serverGameManager,
-                                                string recipeName, bool dontPullLast, Entity inventory, Entity workstationInventory, ref bool fetchedForAnother,
+                                                string recipeName, bool dontPullLast, bool silentPull, Entity inventory, Entity workstationInventory, ref bool fetchedForAnother,
                                                 ref bool fetchedMaterials, PrefabGUID requiredItem, int requiredAmount, int desiredRecipeMultiple, double recipeReduction,
                                                 string fetchMessage = "")
         {
@@ -302,7 +307,8 @@ namespace KindredLogistics.Services
             if (!fetchedMaterials)
             {
                 fetchedMaterials = true;
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching materials for {fetchMessage} <color=yellow>{recipeName}</color>...");
+                if (!silentPull)
+                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching materials for {fetchMessage} <color=yellow>{recipeName}</color>...");
             }
 
             requiredAmount -= currentAmount;
@@ -330,8 +336,9 @@ namespace KindredLogistics.Services
                     transferAmount = Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requiredItem, transferAmount);
                     if (transferAmount <= 0)
                         continue;
-
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{requiredItem.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
+                    
+                    if (!silentPull)
+                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{requiredItem.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                     requiredAmount -= transferAmount;
                     if (requiredAmount <= 0)
                         break;
