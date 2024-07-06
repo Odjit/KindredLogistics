@@ -37,6 +37,9 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
 - `.logistics silentstash`
   - Turns on or off the ability to have stash not report where you stash items.
   - Shortcut: *.l ssh*
+- `.logistics silentpull`
+  - Turns on or off the ability to have pull not report where you pull items from.
+  - Shortcut: *.l sp*
 - `.logistics settings`
   - Shows the enabled/disabled status of the above systems.
   - Shortcut: *.l s*
@@ -98,3 +101,4 @@ PLEASE READ THE FEATURE SUMMARY AT THE BOTTOM OF THIS PAGE FOR A QUICK OVERVIEW 
     
  
 
+This mod is licensed under the AGPL-3.0 license.
