@@ -9,9 +9,9 @@ Never lose where your stuff is again! Use .finditem to find where your items are
 Tired of running around from station to station to make something? No worries! Use the conveyor system to link chests and refining inventories for chain crafting!
 
 
-This was a collaborative effort from Odjit(Dj) and Zfolmt(Mitch). 
+This was a collaborative effort from Odjit (Dj) and Zfolmt (Mitch). 
 
-Feel free to reach out on discord to either (odjit) or (zfolmt) if you have any questions or need help with the mod.
+Feel free to reach out on discord to either Odjit or Zfolmt if you have any questions or need help with the mod.
 
 [V Rising Modding Discord](https://vrisingmods.com/discord)
 
