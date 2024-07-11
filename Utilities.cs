@@ -138,7 +138,7 @@ namespace KindredLogistics
             return false;
         }
 
-        public static bool TransferItemEntites(Entity outputInventory, Entity inputInventory, PrefabGUID itemPrefab, int transferAmount, ref int startInputSlot, out int amountTransferred)
+        public static bool TransferItemEntities(Entity outputInventory, Entity inputInventory, PrefabGUID itemPrefab, int transferAmount, ref int startInputSlot, out int amountTransferred)
         {
             var outputBuffer = outputInventory.ReadBuffer<InventoryBuffer>();
             var inputBuffer = inputInventory.ReadBuffer<InventoryBuffer>();

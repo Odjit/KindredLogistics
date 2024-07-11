@@ -74,7 +74,7 @@ namespace KindredLogistics.Services
 
                     if (isAnItemEntity)
                     {
-                        if (Utilities.TransferItemEntites(attachedEntity, inventory, item, transferAmount, ref playerInventorySlot, out transferAmount))
+                        if (Utilities.TransferItemEntities(attachedEntity, inventory, item, transferAmount, ref playerInventorySlot, out transferAmount))
                         {
                             inventoryFull = true;
                             break;
@@ -367,12 +367,18 @@ namespace KindredLogistics.Services
 
             requiredAmount -= currentAmount;
 
+            var isAnItemEntity = Core.GameDataSystem.ItemHashLookupMap.TryGetValue(requiredItem, out var itemData) && !itemData.Entity.Equals(Entity.Null);
+            var destinationSlot = 0;
+            var isInventoryFull = false;
+
             foreach (var stash in Core.Stash.GetAllAlliedStashesOnTerritory(character))
             {
+                if (isInventoryFull) break;
                 if (requiredAmount <= 0) break;
                 if (stash.Equals(workstation)) continue;
                 if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                     continue;
+
                 foreach (var attachedBuffer in buffer)
                 {
                     var attachedEntity = attachedBuffer.Entity;
@@ -387,7 +393,18 @@ namespace KindredLogistics.Services
                     if (stashItemCount <= 0) continue;
 
                     var transferAmount = Mathf.Min(stashItemCount, requiredAmount);
-                    transferAmount = Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requiredItem, transferAmount);
+                    if (isAnItemEntity)
+                    {
+                        if (Utilities.TransferItemEntities(attachedEntity, inventory, requiredItem, transferAmount, ref destinationSlot, out transferAmount))
+                        {
+                            isInventoryFull = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        transferAmount = Utilities.TransferItems(serverGameManager, attachedEntity, inventory, requiredItem, transferAmount);
+                    }
                     if (transferAmount <= 0)
                         continue;
                     
