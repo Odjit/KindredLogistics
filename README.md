@@ -39,7 +39,7 @@ Check out the details on the WIKI by clicking above!
 |----------------------------------|-----------------------------------------------------------------------------------------------|------------------------|
 | .stash                           | Sends all items besides the hotbar in your inventory to chests in your territory.           |                        |
 | .pull (item) (quantity)         | Takes specified items out of your chests to your inventory.                                  | .pull plank 50         |
-| .finditem (item)                | Searches for an item and returns the names of the chests that contain it.                   | .fi (item)            |
+| .finditem (item)                | Searches for an item and returns the names of the chests that contain it.                   | .fi plank            |
 
 ## Admin Commands
 
