@@ -12,7 +12,7 @@ This was a collaborative effort from Odjit (Dj) and Zfolmt (Mitch).
 
 Feel free to reach out on discord to either Odjit or Zfolmt if you have any questions or need help with the mod.
 
-[V Rising Modding Discord](https://vrisingmods.com/discord)
+[V Rising Modding Discord](https://vrisingmods.com/discord) | [How to Install Mods on BepInEx](https://wiki.vrisingmods.com/user/Mod_Install.html) | [How to Use Mods In-Game](https://wiki.vrisingmods.com/user/Using_Server_Mods.html)
 
 
 [![logwouldyou](https://github.com/user-attachments/assets/4412fd55-cf6d-488b-9e40-77fba9f83afa)](https://github.com/Odjit/KindredLogistics/wiki)
