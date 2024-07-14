@@ -8,9 +8,8 @@ KindredLogistics is a server modification for V Rising that adds expansive featu
 - Never lose where your stuff is again! Use .finditem to find where your items are stored!
 - Tired of running around from station to station to make something? No worries! Use the conveyor system to link chests and refining inventories for chain crafting!
 
-This was a collaborative effort from Odjit (Dj) and Zfolmt (Mitch). 
+This was a collaborative effort from Odjit (Dj) and Zfolmt [(Mitch)](https://www.patreon.com/join/4865914). Feel free to reach out to either of us if you have questions or need help with the mod!
 
-Feel free to reach out on discord to either Odjit or Zfolmt if you have any questions or need help with the mod.
 
 [V Rising Modding Discord](https://vrisingmods.com/discord) | [How to Install Mods on BepInEx](https://wiki.vrisingmods.com/user/Mod_Install.html) | [How to Use Mods In-Game](https://wiki.vrisingmods.com/user/Using_Server_Mods.html)
 
