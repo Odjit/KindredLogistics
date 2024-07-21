@@ -181,7 +181,7 @@ namespace KindredLogistics.Services
             ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Have enough materials for crafting <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
         }
 
-        public static void HandleRepairPull(Entity character, PrefabGUID recipe)
+        public static void HandleRepairPull(Entity character, PrefabGUID recipe, float repairNeeded)
         {
             var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();
             var entityManager = Core.EntityManager;
@@ -230,8 +230,9 @@ namespace KindredLogistics.Services
 
             foreach (var requirement in requirements)
             {
+                int repairAmount = (int)Math.Ceiling(requirement.Stacks * (1 - repairNeeded));
                 RetrieveRequirement(character, Entity.Null, user, entityManager, ref serverGameManager, recipeName, dontPullLast, silentPull, inventory,
-                    inventory, ref fetchedForAnother, ref fetchedMaterials, requirement.Guid, requirement.Stacks, desiredRecipeMultiple,
+                    inventory, ref fetchedForAnother, ref fetchedMaterials, requirement.Guid, repairAmount, desiredRecipeMultiple,
                     1, "repairing");
             }
         }

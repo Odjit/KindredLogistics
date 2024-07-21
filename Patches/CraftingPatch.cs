@@ -115,9 +115,10 @@ public class CraftingPatch
                         if (inventoryBuffer[slot].ItemEntity._Entity.Has<Durability>())
                         {
                             Durability durability = inventoryBuffer[slot].ItemEntity._Entity.Read<Durability>();
-                            if (durability.IsBroken)
+                            if (durability.Value < durability.MaxDurability)
                             {
-                                PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe);
+                                float repairNeeded = durability.Value/durability.MaxDurability;
+                                PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe, repairNeeded);
                             }
                         }
                     }     
@@ -136,17 +137,15 @@ public class CraftingPatch
                     EquipmentType equipmentSlot = repairItemEvent.EquipmentType;
                     FromCharacter fromCharacter = entity.Read<FromCharacter>();
                     Equipment equipment = fromCharacter.Character.Read<Equipment>();
-                    if (InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, fromCharacter.Character, out Entity inventory) && Core.ServerGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var inventoryBuffer))
+                    if (equipment.GetEquipmentEntity(equipmentSlot)._Entity.Has<Durability>())
                     {
-                        if (equipment.GetEquipmentEntity(equipmentSlot)._Entity.Has<Durability>())
+                        Durability durability = equipment.GetEquipmentEntity(equipmentSlot)._Entity.Read<Durability>();
+                        if (durability.Value < durability.MaxDurability)
                         {
-                            Durability durability = equipment.GetEquipmentEntity(equipmentSlot)._Entity.Read<Durability>();
-                            if (durability.IsBroken)
-                            {
-                                PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe);
-                            }
+                            float repairNeeded = durability.Value / durability.MaxDurability;
+                            PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe, repairNeeded);
                         }
-                    }     
+                    }
                 }
             }
             finally
