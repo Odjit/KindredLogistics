@@ -59,9 +59,12 @@ namespace KindredLogistics.Services
                     var castleTerritory = castleHeart.CastleTerritoryEntity;
 
                     // Cache the territory id of buildings as they don't change
-                    territoryId = castleTerritory.Read<CastleTerritory>().CastleTerritoryIndex;
-                    territoryCache[entity] = territoryId;
-                    return territoryId;
+                    if (castleTerritory.Has<CastleTerritory>())
+                    {
+                        territoryId = castleTerritory.Read<CastleTerritory>().CastleTerritoryIndex;
+                        territoryCache[entity] = territoryId;
+                        return territoryId;
+                    }
                 }
             }
 
@@ -76,7 +79,7 @@ namespace KindredLogistics.Services
                         var territory = territoriesInRegion[i];
                         if (CastleTerritoryExtensions.IsTileInTerritory(Core.EntityManager, tilePos.Tile, ref territory, out var _))
                         {
-                            return territory.Read<CastleTerritory>().CastleTerritoryIndex;
+                            if (territory.Has<CastleTerritory>()) return territory.Read<CastleTerritory>().CastleTerritoryIndex;
                         }
                     }
                 }
