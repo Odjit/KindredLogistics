@@ -36,6 +36,7 @@ internal static class Core
     public static PlayerSettingsService PlayerSettings { get; } = new();
     public static RefinementStationsService RefinementStations { get; internal set; }
     public static RegionService RegionService { get; internal set; }
+    public static SalvageService SalvageService { get; internal set; }
     public static StashService Stash { get; } = new();
     public static TerritoryService TerritoryService { get; internal set; }
 
@@ -62,6 +63,7 @@ internal static class Core
         // Initialize utility services
         RefinementStations = new();
         RegionService = new();
+        SalvageService = new();
         TerritoryService = new();
 
         // Now start services that actually do stuff

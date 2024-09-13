@@ -121,6 +121,26 @@ namespace KindredLogistics.Services
             }
         }
 
+        public IEnumerable<Entity> GetAllSalvageStashes(int territoryId)
+        {
+            var stashArray = stashQuery.ToEntityArray(Allocator.Temp);
+            try
+            {
+                foreach (var stash in stashArray)
+                {
+                    if (Core.TerritoryService.GetTerritoryId(stash) != territoryId) continue;
+                    var name = stash.Read<NameableInteractable>().Name.ToString().ToLower();
+                    if (!name.Contains("salvage")) continue;
+
+                    yield return stash;
+                }
+            }
+            finally
+            {
+                stashArray.Dispose();
+            }
+        }
+
         public void StashCharacterInventory(Entity charEntity)
         {
             try
