@@ -40,6 +40,12 @@ namespace KindredLogistics.Services
                 Core.Log.LogWarning($"No inventory found for character {character}.");
                 return;
             }
+            var batform = new PrefabGUID(1205505492);
+            if (BuffUtility.TryGetBuff(Core.EntityManager, character, batform , out var _))
+            {
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, "Cannot pull items while in batform.");
+                return;
+            }
 
             var isAnItemEntity = !itemData.Entity.Equals(Entity.Null);
 
@@ -211,6 +217,11 @@ namespace KindredLogistics.Services
 
             // Determine the multiple of the recipe we currently have then we will try to fetch up to one more recipe's worth of materials
             var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
+            if (!recipeEntity.Has<ItemRepairBuffer>())
+            {
+                ServerChatUtils.SendSystemMessageToClient(entityManager, user, "Invalid recipe specified.");
+                return;
+            }
             var requirements = recipeEntity.ReadBuffer<ItemRepairBuffer>();
 
             var recipeName = recipeEntity.Read<PrefabGUID>().LookupName();
