@@ -38,19 +38,27 @@ namespace KindredLogistics
 
         public static void StashServantInventory(Entity servant)
         {
+            if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, servant, out Entity inventory))
+                return;
+
+            StashInventoryEntity(servant, inventory, "spoils");
+        }
+
+        public static void StashInventoryEntity(Entity entityWithTerritory, Entity inventory, string overflowStashName)
+        {
             var serverGameManager = Core.ServerGameManager;
             var matches = new Dictionary<PrefabGUID, List<(Entity stash, Entity inventory)>>(capacity: 100);
-            (Entity stash, Entity inventory) missionStash = (Entity.Null, Entity.Null);
+            (Entity stash, Entity inventory) overflowStash = (Entity.Null, Entity.Null);
             try
             {
-                foreach (Entity stash in Core.Stash.GetAllAlliedStashesOnTerritory(servant))
+                foreach (Entity stash in Core.Stash.GetAllAlliedStashesOnTerritory(entityWithTerritory))
                 {
-                    if (stash.Read<NameableInteractable>().Name.ToString().ToLower().Contains("spoils") && missionStash.stash.Equals(Entity.Null)) // store mission stash for later
+                    if (stash.Read<NameableInteractable>().Name.ToString().ToLower().Contains(overflowStashName) && overflowStash.stash.Equals(Entity.Null)) // store mission stash for later
                     {
                         if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, stash, out Entity missionInventory)) continue;
                         if (!serverGameManager.HasFullInventory(missionInventory))
                         {
-                            missionStash = (stash, missionInventory);
+                            overflowStash = (stash, missionInventory);
                             continue;
                         }
                     }
@@ -78,35 +86,29 @@ namespace KindredLogistics
                         }
                     }
                 }
-                if (!InventoryUtilities.TryGetInventoryEntity(Core.EntityManager, servant, out Entity inventory))
-                    return;
 
                 if (!serverGameManager.TryGetBuffer<InventoryBuffer>(inventory, out var inventoryBuffer))
                     return;
-                for (int i = 0; i < inventoryBuffer.Length; i++)
+                for (var i = 0; i < inventoryBuffer.Length; i++)
                 {
                     var item = inventoryBuffer[i].ItemType;
-                    if (!matches.TryGetValue(item, out var stashEntries)) // if no match straight to spoils
+                    var amountToTransfer = serverGameManager.GetInventoryItemCount(inventory, item);
+                    if (matches.TryGetValue(item, out var stashEntries)) // if no match straight to spoils
                     {
-                        if (missionStash.stash.Equals(Entity.Null)) continue;
-                        int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                        TransferItems(serverGameManager, inventory, missionStash.inventory, item, transferAmount);
-                        continue;
-                    }
-
-                    foreach (var stashEntry in stashEntries) // if match stash first, then spoils if no room
-                    {
-                        int transferAmount = serverGameManager.GetInventoryItemCount(inventory, item);
-                        int amountTransferred = TransferItems(serverGameManager, inventory, stashEntry.inventory, item, transferAmount); // returns amount transferred
-                        int remaining = transferAmount - amountTransferred;
-                        if (remaining > 0 && !missionStash.stash.Equals(Entity.Null)) // send remaining to spoils
+                        foreach (var stashEntry in stashEntries) // if match stash first, then spoils if no room
                         {
-                            //Core.Log.LogInfo($"Transferred {amountTransferred} to matching stash with {remaining} left for spoils...");
-                            int remainingAmountTransferred = TransferItems(serverGameManager, inventory, missionStash.inventory, item, remaining);
-                            //Core.Log.LogInfo($"Transferred {remainingAmountTransferred} to spoils. Remaining in inventory: {serverGameManager.GetInventoryItemCount(inventory, item)}");
+                            amountToTransfer -= TransferItems(serverGameManager, inventory, stashEntry.inventory, item, amountToTransfer); // returns amount transferred
+                            if (amountToTransfer <= 0) break;
                         }
                     }
-                    
+
+                    if (amountToTransfer > 0 && !overflowStash.stash.Equals(Entity.Null)) // send remaining to spoils
+                    {
+                        //Core.Log.LogInfo($"Transferred {amountTransferred} to matching stash with {remaining} left for spoils...");
+                        var remainingAmountTransferred = TransferItems(serverGameManager, inventory, overflowStash.inventory, item, amountToTransfer);
+                        //Core.Log.LogInfo($"Transferred {remainingAmountTransferred} to spoils. Remaining in inventory: {serverGameManager.GetInventoryItemCount(inventory, item)}");
+                    }
+
                 }
             }
             catch (Exception e)
@@ -195,12 +197,12 @@ namespace KindredLogistics
                 
                 if (response.Result == AddItemResult.Success_Complete)
                 {
-                    //Core.Log.LogInfo($"Moved {transferAmount} of {itemGuid.LookupName()} from Input to Output");
+                    //Core.Log.LogInfo($"Moved {amountToTransfer} of {itemGuid.LookupName()} from Input to Output");
                     return transferAmount;
                 }
                 else
                 {
-                    //Core.Log.LogInfo($"Failed to add {itemGuid.LookupName()}x{transferAmount} to OutputInventory, restoring {response.RemainingAmount}...");
+                    //Core.Log.LogInfo($"Failed to add {itemGuid.LookupName()}x{amountToTransfer} to OutputInventory, restoring {response.RemainingAmount}...");
                     var restoreResponse = serverGameManager.TryAddInventoryItem(outputInventory, itemGuid, response.RemainingAmount);
                     if (restoreResponse.Result == AddItemResult.Success_Complete)
                     {
@@ -215,7 +217,7 @@ namespace KindredLogistics
             }
             else
             {
-                //Core.Log.LogInfo($"Failed to remove {itemGuid.LookupName()}x{transferAmount} from Input");
+                //Core.Log.LogInfo($"Failed to remove {itemGuid.LookupName()}x{amountToTransfer} from Input");
             }
             return 0;
         }
