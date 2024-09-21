@@ -42,6 +42,9 @@ namespace KindredLogistics.Services
             stashQuery = Core.EntityManager.CreateEntityQuery(new EntityQueryDesc
             {
                 All = StashQuery,
+                None = new ComponentType[]{
+                    ComponentType.ReadOnly(Il2CppType.Of<UnitSpawnerstation>())
+                },
                 Options = EntityQueryOptions.IncludeDisabledEntities
             });
             receiverRegex = new Regex(Const.RECEIVER_REGEX, RegexOptions.Compiled);
