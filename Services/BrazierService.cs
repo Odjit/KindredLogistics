@@ -1,5 +1,6 @@
 ﻿using Il2CppInterop.Runtime;
 using ProjectM;
+using ProjectM.Network;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,8 @@ class BrazierService
         brazierQuery = Core.EntityManager.CreateEntityQuery(
                                 ComponentType.ReadOnly(Il2CppType.Of<Bonfire>())
                               );
+
+        Core.TerritoryService.RegisterTerritoryUpdateCallback(UpdateIfBraziersActiveOnTerritory);
     }
 
     public IEnumerable<Entity> GetAllBraziers(int territoryId)
@@ -34,6 +37,22 @@ class BrazierService
         finally
         {
             brazierArray.Dispose();
+        }
+    }
+
+    void UpdateIfBraziersActiveOnTerritory(int territoryId, Entity castleHeartEntity)
+    {
+        if (!Core.PlayerSettings.IsSolarEnabled(0)) return;
+
+        var enable = Core.ServerGameManager.DayNightCycle.TimeOfDay == TimeOfDay.Day;
+        foreach (var brazier in GetAllBraziers(territoryId))
+        {
+            var nameableInteractable = brazier.Read<NameableInteractable>();
+            if (!nameableInteractable.Name.ToString().ToLower().Contains("solar")) continue;
+
+            var burnContainer = brazier.Read<BurnContainer>();
+            burnContainer.Enabled = enable;
+            brazier.Write(burnContainer);
         }
     }
 }

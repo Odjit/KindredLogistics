@@ -1,13 +1,8 @@
-﻿using BepInEx.Unity.IL2CPP.Utils.Collections;
-using Il2CppInterop.Runtime;
-using ProjectM;
-using ProjectM.CastleBuilding;
+﻿using ProjectM;
 using ProjectM.Network;
-using ProjectM.Physics;
 using ProjectM.Scripting;
 using ProjectM.Shared;
 using Stunlock.Core;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -23,111 +18,17 @@ namespace KindredLogistics.Services
         readonly List<Entity> distributionList = [];
         readonly Dictionary<Entity, int> amountReceiving = [];
 
-        readonly IgnorePhysicsDebugSystem conveyorMonoBehaviour;
-
-        const int MIN_TERRITORY_ID = 0;
-        const int MAX_TERRITORY_ID = 138;
-
-        EntityQuery castleHeartQuery;
-        Dictionary<int, Entity> territoryToCastleHeart = [];
-
         public ConveyorService()
         {
-            var queryDesc = new EntityQueryDesc
-            {
-                All = new ComponentType[] { new(Il2CppType.Of<CastleHeart>(), ComponentType.AccessMode.ReadOnly) },
-                Options = EntityQueryOptions.Default
-            };
-
-            castleHeartQuery = Core.EntityManager.CreateEntityQuery(queryDesc);
-
-            conveyorMonoBehaviour = (new GameObject("ConveyorService")).AddComponent<IgnorePhysicsDebugSystem>();
-            conveyorMonoBehaviour.StartCoroutine(UpdateLoop().WrapToIl2Cpp());
+            Core.TerritoryService.RegisterTerritoryUpdateCallback(ProcessConveyors);
+            Core.TerritoryService.RegisterTerritoryUpdateCallback(ProcessSalvagers);
+            Core.TerritoryService.RegisterTerritoryUpdateCallback(ProcessUnitSpawners);
+            Core.TerritoryService.RegisterTerritoryUpdateCallback(ProcessBraziers);
         }
 
-        IEnumerator UpdateLoop()
+        void ProcessConveyors(int territoryId, Entity castleHeartEntity)
         {
-            yield return null;
-            while (true)
-            {
-                var castleHeartEntities = castleHeartQuery.ToEntityArray(Allocator.Temp);
-                try
-                {
-                    foreach (var castleHeartEntity in castleHeartEntities)
-                    {
-                        var castleHeart = castleHeartEntity.Read<CastleHeart>();
-                        var territoryEntity = castleHeart.CastleTerritoryEntity;
-                        var territory = territoryEntity.Read<CastleTerritory>();
-                        territoryToCastleHeart[territory.CastleTerritoryIndex] = castleHeartEntity;
-                    }
-                }
-                finally
-                {
-                    castleHeartEntities.Dispose();
-                }
-
-                yield return null;
-                for (int i = MIN_TERRITORY_ID; i <= MAX_TERRITORY_ID; i++)
-                {
-                    if (Core.PlayerSettings.IsConveyorEnabled(0))
-                    {
-                        try
-                        {
-                            ProcessConveyors(i);
-                        }
-                        catch (System.Exception e)
-                        {
-                            Core.LogException(e, $"ProcessConveyors({i})");
-                        }
-                    }
-                    if (Core.PlayerSettings.IsSalvageEnabled(0))
-                    {
-                        try
-                        {
-                            ProcessSalvagers(i);
-                        }
-                        catch (System.Exception e)
-                        {
-                            Core.LogException(e, $"ProcessSalvagers({i})");
-                        }
-                    }
-                    if (Core.PlayerSettings.IsUnitSpawnerEnabled(0))
-                    {
-                        try
-                        {
-                            ProcessUnitSpawners(i);
-                        }
-                        catch (System.Exception e)
-                        {
-                            Core.LogException(e, $"ProcessUnitSpawners({i})");
-                        }
-                    }
-                    if (Core.PlayerSettings.IsBrazierEnabled(0))
-                    {
-                        try
-                        {
-                            ProcessBraziers(i);
-                        }
-                        catch (System.Exception e)
-                        {
-                            Core.LogException(e, $"ProcessBraziers({i})");
-                        }
-                    }
-                    yield return null;
-                }
-            }
-        }
-
-        void ProcessConveyors(int territoryId)
-        {
-            if (!territoryToCastleHeart.TryGetValue(territoryId, out var castleHeartEntity)) return;
-
-            // This was cached a while ago so it could be invalid now
-            if (!Core.EntityManager.Exists(castleHeartEntity))
-            {
-                territoryToCastleHeart.Remove(territoryId);
-                return;
-            }
+            if (!Core.PlayerSettings.IsConveyorEnabled(0)) return;
 
             var userOwner = castleHeartEntity.Read<UserOwner>();
             if (userOwner.Owner.GetEntityOnServer() == Entity.Null) return;
@@ -312,16 +213,11 @@ namespace KindredLogistics.Services
             }
         }
 
-        void ProcessSalvagers(int territoryId)
+        void ProcessSalvagers(int territoryId, Entity castleHeartEntity)
         {
-            var salvagers = Core.SalvageService.GetAllSalvageStations(territoryId).ToArray();
-            if (!territoryToCastleHeart.TryGetValue(territoryId, out var castleHeartEntity)) return;
+            if (!Core.PlayerSettings.IsSalvageEnabled(0)) return;
 
-            if (!Core.EntityManager.Exists(castleHeartEntity))
-            {
-                territoryToCastleHeart.Remove(territoryId);
-                return;
-            }
+            var salvagers = Core.SalvageService.GetAllSalvageStations(territoryId).ToArray();
 
             var userOwner = castleHeartEntity.Read<UserOwner>();
             if (userOwner.Owner.GetEntityOnServer() == Entity.Null) return;
@@ -389,16 +285,9 @@ namespace KindredLogistics.Services
             }
         }
 
-        void ProcessUnitSpawners(int territoryId)
+        void ProcessUnitSpawners(int territoryId, Entity castleHeartEntity)
         {
-            if (!territoryToCastleHeart.TryGetValue(territoryId, out var castleHeartEntity)) return;
-
-            // This was cached a while ago so it could be invalid now
-            if (!Core.EntityManager.Exists(castleHeartEntity))
-            {
-                territoryToCastleHeart.Remove(territoryId);
-                return;
-            }
+            if (!Core.PlayerSettings.IsUnitSpawnerEnabled(0)) return;
 
             var userOwner = castleHeartEntity.Read<UserOwner>();
             if (userOwner.Owner.GetEntityOnServer() == Entity.Null) return;
@@ -554,17 +443,11 @@ namespace KindredLogistics.Services
             }
         }
 
-        void ProcessBraziers(int territoryId)
+        void ProcessBraziers(int territoryId, Entity castleHeartEntity)
         {
+            if (!Core.PlayerSettings.IsBrazierEnabled(0)) return;
+            
             const int minAmount = 10;
-            if (!territoryToCastleHeart.TryGetValue(territoryId, out var castleHeartEntity)) return;
-
-            // This was cached a while ago so it could be invalid now
-            if (!Core.EntityManager.Exists(castleHeartEntity))
-            {
-                territoryToCastleHeart.Remove(territoryId);
-                return;
-            }
 
             var userOwner = castleHeartEntity.Read<UserOwner>();
             if (userOwner.Owner.GetEntityOnServer() == Entity.Null) return;

@@ -2,6 +2,8 @@
 using ProjectM;
 using ProjectM.CastleBuilding;
 using ProjectM.Terrain;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
@@ -10,8 +12,16 @@ namespace KindredLogistics.Services
 {
     internal class TerritoryService
     {
-        Dictionary<WorldRegionType, List<Entity>> territories = [];
-        Dictionary<Entity, int> territoryCache = [];
+        readonly Dictionary<WorldRegionType, List<Entity>> territories = [];
+        readonly Dictionary<Entity, int> territoryCache = [];
+
+        readonly List<Action<int, Entity>> territoryUpdateCallbacks = [];
+
+        const int MIN_TERRITORY_ID = 0;
+        const int MAX_TERRITORY_ID = 138;
+
+        EntityQuery castleHeartQuery;
+        readonly Dictionary<int, Entity> territoryToCastleHeart = [];
 
         public TerritoryService()
         {
@@ -34,6 +44,70 @@ namespace KindredLogistics.Services
                     territories[region] = territoriesInRegion;
                 }
                 territoriesInRegion.Add(territoryEntity);
+            }
+
+            queryDesc = new EntityQueryDesc
+            {
+                All = new ComponentType[] { new(Il2CppType.Of<CastleHeart>(), ComponentType.AccessMode.ReadOnly) },
+                Options = EntityQueryOptions.Default
+            };
+
+            castleHeartQuery = Core.EntityManager.CreateEntityQuery(queryDesc);
+
+            Core.StartCoroutine(UpdateLoop());
+        }
+
+        public void RegisterTerritoryUpdateCallback(Action<int, Entity> callback)
+        {
+            territoryUpdateCallbacks.Add(callback);
+        }
+
+        IEnumerator UpdateLoop()
+        {
+            yield return null;
+            while (true)
+            {
+                var castleHeartEntities = castleHeartQuery.ToEntityArray(Allocator.Temp);
+                try
+                {
+                    foreach (var castleHeartEntity in castleHeartEntities)
+                    {
+                        var castleHeart = castleHeartEntity.Read<CastleHeart>();
+                        var territoryEntity = castleHeart.CastleTerritoryEntity;
+                        var territory = territoryEntity.Read<CastleTerritory>();
+                        territoryToCastleHeart[territory.CastleTerritoryIndex] = castleHeartEntity;
+                    }
+                }
+                finally
+                {
+                    castleHeartEntities.Dispose();
+                }
+
+                for (int i = MIN_TERRITORY_ID; i <= MAX_TERRITORY_ID; i++)
+                {
+                    yield return null;
+
+                    if (!territoryToCastleHeart.TryGetValue(i, out var castleHeartEntity)) continue;
+
+                    // This was cached a while ago so it could be invalid now
+                    if (!Core.EntityManager.Exists(castleHeartEntity))
+                    {
+                        territoryToCastleHeart.Remove(i);
+                        continue;
+                    }
+
+                    foreach (var callback in territoryUpdateCallbacks)
+                    {
+                        try
+                        {
+                            callback(i, castleHeartEntity);
+                        }
+                        catch (Exception e)
+                        {
+                            Core.LogException(e);
+                        }
+                    }
+                }
             }
         }
 

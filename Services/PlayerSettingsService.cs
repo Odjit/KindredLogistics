@@ -33,6 +33,7 @@ namespace KindredLogistics.Services
             public bool Salvage { get; set; }
             public bool UnitSpawner { get; set; }
             public bool Brazier { get; set; }
+            public bool Solar { get; set; }
             public bool SilentPull { get; set; }
             public bool SilentStash { get; set; }
         }
@@ -57,6 +58,7 @@ namespace KindredLogistics.Services
                     Salvage = true,
                     UnitSpawner = false,
                     Brazier = false,
+                    Solar = false,
                 };
                 SaveSettings();
             }
@@ -211,6 +213,23 @@ namespace KindredLogistics.Services
             if (!playerSettings.TryGetValue(playerId, out var settings))
                 settings = defaultSettings;
             return settings.Brazier;
+        }
+
+        public bool IsSolarEnabled(ulong playerId)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                settings = defaultSettings;
+            return settings.Solar;
+        }
+
+        public bool ToggleSolar(ulong playerId = GLOBAL_PLAYER_ID)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                settings = new PlayerSettings();
+            settings.Solar = !settings.Solar;
+            playerSettings[playerId] = settings;
+            SaveSettings();
+            return settings.Solar;
         }
 
         public bool ToggleBrazier(ulong playerId = GLOBAL_PLAYER_ID)

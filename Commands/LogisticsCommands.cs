@@ -181,6 +181,13 @@ namespace Logistics.Commands
             ctx.Reply($"Global Brazier is {(brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
+        [Command(name: "solar", shortHand:"sol", usage: ".lg sol", description: "Toggles the ability allow solar controlled braziers.", adminOnly: true)]
+        public static void ToggleSolar(ChatCommandContext ctx)
+        {
+            var solar = Core.PlayerSettings.ToggleSolar();
+            ctx.Reply($"Global Solar is {(solar ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
         [Command(name: "settings", shortHand: "s", usage: ".lg s", description: "Displays current settings.", adminOnly: true)]
         public static void DisplaySettings(ChatCommandContext ctx)
         {
@@ -192,7 +199,9 @@ namespace Logistics.Commands
                       $"AutoStashMissions: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Conveyor: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Salvage: {(settings.Salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"UnitSpawner: {(settings.UnitSpawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
+                      $"UnitSpawner: {(settings.UnitSpawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"Brazier: {(settings.Brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"Solar: {(settings.Solar ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
                       );
         }
     }

@@ -35,7 +35,7 @@ namespace KindredLogistics.Services
         readonly Regex receiverRegex;
         readonly Regex senderRegex;
 
-        Dictionary<Entity, (double expirationTime, List<Entity> targetStashes)> activeSpotlights = [];
+        readonly Dictionary<Entity, (double expirationTime, List<Entity> targetStashes)> activeSpotlights = [];
 
         public StashService()
         {
