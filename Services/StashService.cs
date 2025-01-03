@@ -153,6 +153,11 @@ namespace KindredLogistics.Services
             return GetNamedStashes(territoryId, "spawner");
         }
 
+        public IEnumerable<Entity> GetAllBrazierStashes(int territoryId)
+        {
+            return GetNamedStashes(territoryId, "brazier");
+        }
+
         public void StashCharacterInventory(Entity charEntity)
         {
             try
@@ -177,6 +182,7 @@ namespace KindredLogistics.Services
                         if (stash.Has<CastleWorkstation>()) continue;
                         if (stash.Has<UnitSpawnerstation>()) continue;
                         if (stash.Has<Refinementstation>()) continue;
+                        if (stash.Has<Bonfire>()) continue;
                         if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                             continue;
 

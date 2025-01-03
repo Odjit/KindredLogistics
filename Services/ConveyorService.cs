@@ -102,6 +102,17 @@ namespace KindredLogistics.Services
                             Core.LogException(e, $"ProcessUnitSpawners({i})");
                         }
                     }
+                    if (Core.PlayerSettings.IsBrazierEnabled(0))
+                    {
+                        try
+                        {
+                            ProcessBraziers(i);
+                        }
+                        catch (System.Exception e)
+                        {
+                            Core.LogException(e, $"ProcessBraziers({i})");
+                        }
+                    }
                     yield return null;
                 }
             }
@@ -126,7 +137,7 @@ namespace KindredLogistics.Services
 
             var serverGameManager = Core.ServerGameManager;
 
-            // Determine what is needed for each station
+            // Determine what is needed for each brazier
             var receivingNeeds = new Dictionary<(int group, PrefabGUID item), List<(Entity receiver, int amount)>>();
             foreach (var (group, station) in Core.RefinementStations.GetAllReceivingStations(territoryId))
             {
@@ -397,7 +408,7 @@ namespace KindredLogistics.Services
 
             var serverGameManager = Core.ServerGameManager;
 
-            // Determine what is needed for each station
+            // Determine what is needed for each brazier
             var receivingNeeds = new Dictionary<PrefabGUID, Dictionary<Entity, int>>();
             foreach (var station in Core.UnitSpawnerstationService.GetAllUnitSpawners(territoryId))
             {
@@ -474,11 +485,12 @@ namespace KindredLogistics.Services
                     if (!attachedEntity.Has<PrefabGUID>()) continue;
                     if (!attachedEntity.Read<PrefabGUID>().Equals(StashService.ExternalInventoryPrefab)) continue;
 
-                    DistributeInventorySpawners(receivingNeeds, serverGameManager, attachedEntity, retain: 1);
+                    DistributeInventory(receivingNeeds, serverGameManager, attachedEntity, retain: 1);
                 }
             }
         }
-        void DistributeInventorySpawners(Dictionary<PrefabGUID, Dictionary<Entity, int>> receivingNeeds,
+
+        void DistributeInventory(Dictionary<PrefabGUID, Dictionary<Entity, int>> receivingNeeds,
                                  ServerGameManager serverGameManager, Entity inventoryEntity, int retain = 0)
         {
             var inventoryBuffer = inventoryEntity.ReadBuffer<InventoryBuffer>();
@@ -538,6 +550,87 @@ namespace KindredLogistics.Services
                         if (needs[receivingInventoryEntity] <= 0)
                             needs.Remove(receivingInventoryEntity);
                     }
+                }
+            }
+        }
+
+        void ProcessBraziers(int territoryId)
+        {
+            const int minAmount = 10;
+            if (!territoryToCastleHeart.TryGetValue(territoryId, out var castleHeartEntity)) return;
+
+            // This was cached a while ago so it could be invalid now
+            if (!Core.EntityManager.Exists(castleHeartEntity))
+            {
+                territoryToCastleHeart.Remove(territoryId);
+                return;
+            }
+
+            var userOwner = castleHeartEntity.Read<UserOwner>();
+            if (userOwner.Owner.GetEntityOnServer() == Entity.Null) return;
+
+            var platformID = userOwner.Owner.GetEntityOnServer().Read<User>().PlatformId;
+            if (!Core.PlayerSettings.IsBrazierEnabled(platformID)) return;
+
+            var serverGameManager = Core.ServerGameManager;
+
+            // Determine what is needed for each brazier
+            var receivingNeeds = new Dictionary<PrefabGUID, Dictionary<Entity, int>>();
+            foreach (var brazier in Core.BrazierService.GetAllBraziers(territoryId))
+            {
+                var burnContainer = brazier.Read<BurnContainer>();
+                if (!burnContainer.Enabled) continue;
+
+                var inputInventoryEntity = Entity.Null;
+                DynamicBuffer<InventoryBuffer> inventoryBuffer = new();
+                if (!serverGameManager.TryGetBuffer<AttachedBuffer>(brazier, out var buffer))
+                    continue;
+                foreach (var attachedBuffer in buffer)
+                {
+                    var attachedEntity = attachedBuffer.Entity;
+                    if (!attachedEntity.Has<PrefabGUID>()) continue;
+                    if (!attachedEntity.Read<PrefabGUID>().Equals(StashService.ExternalInventoryPrefab)) continue;
+
+                    inputInventoryEntity = attachedEntity;
+                    inventoryBuffer = attachedEntity.ReadBuffer<InventoryBuffer>();
+                }
+
+                // Check how much is already in the inventory
+                var bonfire = brazier.Read<Bonfire>();
+                var has = 0;
+                foreach (var item in inventoryBuffer)
+                {
+                    if (item.ItemType.Equals(bonfire.InputItem))
+                    {
+                        has += item.Amount;
+                    }
+                }
+
+                if (has > minAmount) continue;
+
+                if (!receivingNeeds.TryGetValue(bonfire.InputItem, out var needs))
+                {
+                    needs = [];
+                    receivingNeeds[bonfire.InputItem] = needs;
+                }
+
+                needs[inputInventoryEntity] = minAmount - has;
+            }
+
+            if (receivingNeeds.Count == 0) return;
+
+            // Distribute from all the spawner stashes
+            foreach (var sendingStash in Core.Stash.GetAllBrazierStashes(territoryId))
+            {
+                if (!serverGameManager.TryGetBuffer<AttachedBuffer>(sendingStash, out var buffer))
+                    continue;
+                foreach (var attachedBuffer in buffer)
+                {
+                    var attachedEntity = attachedBuffer.Entity;
+                    if (!attachedEntity.Has<PrefabGUID>()) continue;
+                    if (!attachedEntity.Read<PrefabGUID>().Equals(StashService.ExternalInventoryPrefab)) continue;
+
+                    DistributeInventory(receivingNeeds, serverGameManager, attachedEntity, retain: 1);
                 }
             }
         }

@@ -71,6 +71,15 @@ namespace Logistics.Commands
             ctx.Reply($"Spawner is {(spawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
+        [Command(name: "brazier", shortHand: "bz", usage: ".l bz", description: "Toggles the ability to fill braziers from a chest named 'brazier'.")]
+        public static void ToggleBrazier(ChatCommandContext ctx)
+        {
+            var SteamID = ctx.Event.User.PlatformId;
+
+            var brazier = Core.PlayerSettings.ToggleBrazier(SteamID);
+            ctx.Reply($"Brazier is {(brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
         [Command(name: "silentpull", shortHand: "sp", description: "Toggles the ability to not send messages when pulling about where they came from.")]
         public static void ToggleSilentCraftPull(ChatCommandContext ctx)
         {
@@ -105,6 +114,7 @@ namespace Logistics.Commands
                       $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Salvage: {(globalSettings.Salvage ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"UnitSpawner{(globalSettings.UnitSpawner ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.UnitSpawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"Brazier{(globalSettings.Brazier ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"SilentPull: {(settings.SilentPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"SilentStash: {(settings.SilentStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
                       );
@@ -162,6 +172,13 @@ namespace Logistics.Commands
         {
             var spawner = Core.PlayerSettings.ToggleUnitSpawner();
             ctx.Reply($"Global Spawner is {(spawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
+        [Command(name: "brazier", shortHand: "bz", usage: ".lg bz", description: "Toggles the ability to fill braziers from a chest named 'brazier'.", adminOnly: true)]
+        public static void ToggleBrazier(ChatCommandContext ctx)
+        {
+            var brazier = Core.PlayerSettings.ToggleBrazier();
+            ctx.Reply($"Global Brazier is {(brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
         [Command(name: "settings", shortHand: "s", usage: ".lg s", description: "Displays current settings.", adminOnly: true)]

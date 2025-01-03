@@ -32,6 +32,7 @@ namespace KindredLogistics.Services
             public bool Conveyor { get; set; }
             public bool Salvage { get; set; }
             public bool UnitSpawner { get; set; }
+            public bool Brazier { get; set; }
             public bool SilentPull { get; set; }
             public bool SilentStash { get; set; }
         }
@@ -55,6 +56,7 @@ namespace KindredLogistics.Services
                     Conveyor = true,
                     Salvage = true,
                     UnitSpawner = false,
+                    Brazier = false,
                 };
                 SaveSettings();
             }
@@ -204,6 +206,23 @@ namespace KindredLogistics.Services
             return settings.UnitSpawner;
         }
         
+        public bool IsBrazierEnabled(ulong playerId)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                settings = defaultSettings;
+            return settings.Brazier;
+        }
+
+        public bool ToggleBrazier(ulong playerId = GLOBAL_PLAYER_ID)
+        {
+            if (!playerSettings.TryGetValue(playerId, out var settings))
+                settings = new PlayerSettings();
+            settings.Brazier = !settings.Brazier;
+            playerSettings[playerId] = settings;
+            SaveSettings();
+            return settings.Brazier;
+        }
+
         public bool ToggleSilentPull(ulong playerId = GLOBAL_PLAYER_ID)
         {
             if (!playerSettings.TryGetValue(playerId, out var settings))
