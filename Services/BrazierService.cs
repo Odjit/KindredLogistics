@@ -45,6 +45,46 @@ class BrazierService
         if (!Core.PlayerSettings.IsSolarEnabled(0)) return;
 
         var enable = Core.ServerGameManager.DayNightCycle.TimeOfDay == TimeOfDay.Day;
+
+        // Check if any of the clan mates are online and on the territory
+        var userOwner = castleHeartEntity.Read<UserOwner>();
+        if (userOwner.Owner.GetEntityOnServer() == Entity.Null) return;
+
+        var ownerEntity = userOwner.Owner.GetEntityOnServer();
+        var user = ownerEntity.Read<User>();
+        var clanEntity = user.ClanEntity.GetEntityOnServer();
+        if (clanEntity == Entity.Null)
+        {
+            var character = user.LocalCharacter.GetEntityOnServer();
+            // No clan, so check only the owner
+            if (!user.IsConnected || Core.TerritoryService.GetTerritoryId(character) != territoryId)
+            {
+                enable = false;
+            }
+        }
+        else
+        {
+            var foundOnlineMemberOnTerritory = false;
+            var members = Core.EntityManager.GetBuffer<ClanMemberStatus>(clanEntity);
+            var userBuffer = Core.EntityManager.GetBuffer<SyncToUserBuffer>(clanEntity);
+            for (var i = 0; i < members.Length; ++i)
+            {
+                if (!members[i].IsConnected) continue;
+
+                var character = userBuffer[i].UserEntity.Read<User>().LocalCharacter.GetEntityOnServer();
+                if (Core.TerritoryService.GetTerritoryId(character) == territoryId)
+                {
+                    foundOnlineMemberOnTerritory = true;
+                    break;
+                }
+            }
+
+            if (!foundOnlineMemberOnTerritory)
+            {
+                enable = false;
+            }
+        }
+
         foreach (var brazier in GetAllBraziers(territoryId))
         {
             var nameableInteractable = brazier.Read<NameableInteractable>();
