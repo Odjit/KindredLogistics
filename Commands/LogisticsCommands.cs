@@ -62,6 +62,15 @@ namespace Logistics.Commands
             ctx.Reply($"Salvage is {(salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
+        [Command(name: "unitspawner", shortHand: "us", usage: ".l sp", description: "Toggles the ability to fill unit stations from a chest named 'spawner'.")]
+        public static void ToggleUnitSpawner(ChatCommandContext ctx)
+        {
+            var SteamID = ctx.Event.User.PlatformId;
+
+            var spawner = Core.PlayerSettings.ToggleUnitSpawner(SteamID);
+            ctx.Reply($"Spawner is {(spawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
         [Command(name: "silentpull", shortHand: "sp", description: "Toggles the ability to not send messages when pulling about where they came from.")]
         public static void ToggleSilentCraftPull(ChatCommandContext ctx)
         {
@@ -95,6 +104,7 @@ namespace Logistics.Commands
                       $"AutoStashMissions{(globalSettings.AutoStashMissions ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Salvage: {(globalSettings.Salvage ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"UnitSpawner{(globalSettings.UnitSpawner ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.UnitSpawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"SilentPull: {(settings.SilentPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"SilentStash: {(settings.SilentStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
                       );
@@ -147,6 +157,13 @@ namespace Logistics.Commands
             ctx.Reply($"Global Salvage is {(salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
+        [Command(name: "unitspawner", shortHand: "us", usage: ".lg sp", description: "Toggles the ability to fill unit stations from a chest named 'spawner'.", adminOnly: true)]
+        public static void ToggleUnitSpawner(ChatCommandContext ctx)
+        {
+            var spawner = Core.PlayerSettings.ToggleUnitSpawner();
+            ctx.Reply($"Global Spawner is {(spawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
         [Command(name: "settings", shortHand: "s", usage: ".lg s", description: "Displays current settings.", adminOnly: true)]
         public static void DisplaySettings(ChatCommandContext ctx)
         {
@@ -157,7 +174,8 @@ namespace Logistics.Commands
                       $"CraftPull: {(settings.CraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"AutoStashMissions: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Conveyor: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"Salvage: {(settings.Salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n"
+                      $"Salvage: {(settings.Salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
+                      $"UnitSpawner: {(settings.UnitSpawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
                       );
         }
     }

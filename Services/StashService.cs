@@ -121,8 +121,10 @@ namespace KindredLogistics.Services
             }
         }
 
-        public IEnumerable<Entity> GetAllSalvageStashes(int territoryId)
+        
+        IEnumerable<Entity> GetNamedStashes(int territoryId, string nameContains)
         {
+            nameContains = nameContains.ToLower();
             var stashArray = stashQuery.ToEntityArray(Allocator.Temp);
             try
             {
@@ -130,7 +132,7 @@ namespace KindredLogistics.Services
                 {
                     if (Core.TerritoryService.GetTerritoryId(stash) != territoryId) continue;
                     var name = stash.Read<NameableInteractable>().Name.ToString().ToLower();
-                    if (!name.Contains("salvage")) continue;
+                    if (!name.Contains(nameContains)) continue;
 
                     yield return stash;
                 }
@@ -139,6 +141,16 @@ namespace KindredLogistics.Services
             {
                 stashArray.Dispose();
             }
+        }
+
+        public IEnumerable<Entity> GetAllSalvageStashes(int territoryId)
+        {
+            return GetNamedStashes(territoryId, "salvage");
+        }
+
+        public IEnumerable<Entity> GetAllSpawnerStashes(int territoryId)
+        {
+            return GetNamedStashes(territoryId, "spawner");
         }
 
         public void StashCharacterInventory(Entity charEntity)
@@ -163,6 +175,8 @@ namespace KindredLogistics.Services
                     try
                     {
                         if (stash.Has<CastleWorkstation>()) continue;
+                        if (stash.Has<UnitSpawnerstation>()) continue;
+                        if (stash.Has<Refinementstation>()) continue;
                         if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                             continue;
 

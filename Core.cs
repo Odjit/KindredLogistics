@@ -39,6 +39,7 @@ internal static class Core
     public static SalvageService SalvageService { get; internal set; }
     public static StashService Stash { get; } = new();
     public static TerritoryService TerritoryService { get; internal set; }
+    public static UnitSpawnerstationService UnitSpawnerstationService { get; internal set; }
 
     public const int MAX_REPLY_LENGTH = 509;
 
@@ -65,6 +66,7 @@ internal static class Core
         RegionService = new();
         SalvageService = new();
         TerritoryService = new();
+        UnitSpawnerstationService = new();
 
         // Now start services that actually do stuff
         ConveyorService = new();

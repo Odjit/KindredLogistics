@@ -21,8 +21,6 @@ namespace KindredLogistics.Services
                 ComponentType.ReadOnly(Il2CppType.Of<CastleWorkstation>()),
             ];
 
-        public delegate bool StationFilter(Entity station);
-
         EntityQuery stationsQuery;
         readonly Regex receiverRegex;
         readonly Regex senderRegex;

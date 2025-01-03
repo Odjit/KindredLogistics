@@ -391,6 +391,50 @@ namespace KindredLogistics.Services
                 if (!serverGameManager.TryGetBuffer<AttachedBuffer>(stash, out var buffer))
                     continue;
 
+                // Don't pull resources that are being actively used from a spawner station
+                if (stash.Has<UnitSpawnerstation>())
+                {
+                    var spawnerStation = stash.Read<UnitSpawnerstation>();
+                    if (spawnerStation.IsWorking)
+                    {
+                        Entity recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[spawnerStation.CurrentRecipeGuid];
+                        var requirements = recipeEntity.ReadBuffer<RecipeRequirementBuffer>();
+                        var foundItem = false;
+                        foreach (var requirement in requirements)
+                        {
+                            if (requirement.Guid.Equals(requiredItem))
+                            {
+                                foundItem = true;
+                                break;
+                            }
+                        }
+                        if (foundItem)
+                            continue;
+                    }
+                }
+
+                // Don't pull resources that are being actively used from a refinement station
+                if (stash.Has<Refinementstation>())
+                {
+                    var refinementStation = stash.Read<Refinementstation>();
+                    if (refinementStation.IsWorking)
+                    {
+                        Entity recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[refinementStation.CurrentRecipeGuid];
+                        var requirements = recipeEntity.ReadBuffer<RecipeRequirementBuffer>();
+                        var foundItem = false;
+                        foreach (var requirement in requirements)
+                        {
+                            if (requirement.Guid.Equals(requiredItem))
+                            {
+                                foundItem = true;
+                                break;
+                            }
+                        }
+                        if (foundItem)
+                            continue;
+                    }
+                }
+
                 foreach (var attachedBuffer in buffer)
                 {
                     var attachedEntity = attachedBuffer.Entity;
