@@ -25,11 +25,11 @@
 	  <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.691" IncludeAssets="compile" />
 	  <PackageReference Include="BepInEx.Core" Version="6.0.0-be.691" IncludeAssets="compile" />
 	  <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
-	  <PackageReference Include="VRising.Unhollowed.Client" Version="1.0.2.*" />
+	  <PackageReference Include="VRising.Unhollowed.Client" Version="1.0.5.802790001" />
 	  <PackageReference Include="VRising.VampireCommandFramework" Version="0.9.*" />
   </ItemGroup>
   <ItemGroup>
-      <PackageReference Include="System.Text.Json" Version="6.0.1" />
+      <PackageReference Include="System.Text.Json" Version="6.0.11" />
   </ItemGroup>
   <PropertyGroup>
 	  <NoWarn>NU1605</NoWarn>
