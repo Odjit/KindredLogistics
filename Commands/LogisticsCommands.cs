@@ -105,18 +105,17 @@ namespace Logistics.Commands
 
             var settings = Core.PlayerSettings.GetSettings(SteamID);
             var globalSettings = Core.PlayerSettings.GetGlobalSettings();
-            ctx.Reply("KindredLogistics settings:\n" +
-                      $"SortStash{(globalSettings.SortStash ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.SortStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"Pull (Global) : {(globalSettings.Pull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"CraftPull{(globalSettings.CraftPull ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.CraftPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"DontPullLast: {(settings.DontPullLast ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"AutoStashMissions{(globalSettings.AutoStashMissions ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.AutoStashMissions ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"Salvage: {(globalSettings.Salvage ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"UnitSpawner{(globalSettings.UnitSpawner ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.UnitSpawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"Brazier{(globalSettings.Brazier ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"SilentPull: {(settings.SilentPull ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"SilentStash: {(settings.SilentStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
+            ctx.Reply("KindredLogistics Settings:\n" +
+                      $"SortStash{(globalSettings.SortStash ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.SortStash ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
+                      $"Pull (Global) : {(globalSettings.Pull ? "<color=green>Server enabled</color>" : "<color=red>Server Disabled</color>")}\n" +
+                      $"CraftPull{(globalSettings.CraftPull ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.CraftPull ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
+                      $"DontPullLast: {(settings.DontPullLast ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
+                      $"AutoStashMissions{(globalSettings.AutoStashMissions ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.AutoStashMissions ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
+                      $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
+                      $"Salvage: {(globalSettings.Salvage ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Salvage ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
+                      $"UnitSpawner{(globalSettings.UnitSpawner ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.UnitSpawner ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
+                      $"Brazier{(globalSettings.Brazier ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Brazier ? "<color=green>On</color>" : "<color=red>Off</color>")}" + $" Solar: {(globalSettings.Solar ? "<color=green>Server Enabled</color>" : "<color=red>Server Disabled</color>")}\n" +
+                      $"Silent: Pull: {(settings.SilentPull ? "<color=green>On</color>" : "<color=red>Off</color>")}" + $" Stash: { (settings.SilentStash ? "<color=green>On</color>" : "<color=red>Off</color>")}"
                       );
         }  
     }
@@ -181,7 +180,7 @@ namespace Logistics.Commands
             ctx.Reply($"Global Brazier is {(brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
-        [Command(name: "solar", shortHand:"sol", usage: ".lg sol", description: "Toggles the ability allow solar controlled braziers.", adminOnly: true)]
+        [Command(name: "solar", shortHand:"sol", usage: ".lg sol", description: "Toggles the ability allow solar/proximity controlled braziers.", adminOnly: true)]
         public static void ToggleSolar(ChatCommandContext ctx)
         {
             var solar = Core.PlayerSettings.ToggleSolar();
