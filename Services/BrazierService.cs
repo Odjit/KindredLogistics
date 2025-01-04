@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Transforms;
+using UnityEngine;
 
 namespace KindredLogistics.Services;
 class BrazierService
@@ -44,55 +46,91 @@ class BrazierService
     {
         if (!Core.PlayerSettings.IsSolarEnabled(0)) return;
 
-        var enable = Core.ServerGameManager.DayNightCycle.TimeOfDay == TimeOfDay.Day;
+        var solarEnable = Core.ServerGameManager.DayNightCycle.TimeOfDay == TimeOfDay.Day;
+        var proxEnable = solarEnable;
 
         // Check if any of the clan mates are online and on the territory
         var userOwner = castleHeartEntity.Read<UserOwner>();
         if (userOwner.Owner.GetEntityOnServer() == Entity.Null) return;
 
-        var ownerEntity = userOwner.Owner.GetEntityOnServer();
-        var user = ownerEntity.Read<User>();
-        var clanEntity = user.ClanEntity.GetEntityOnServer();
-        if (clanEntity == Entity.Null)
+        var entitiesToCheckForProximity = new List<Entity>();
+        if (proxEnable)
         {
-            var character = user.LocalCharacter.GetEntityOnServer();
-            // No clan, so check only the owner
-            if (!user.IsConnected || Core.TerritoryService.GetTerritoryId(character) != territoryId)
+            var ownerEntity = userOwner.Owner.GetEntityOnServer();
+            var user = ownerEntity.Read<User>();
+            var clanEntity = user.ClanEntity.GetEntityOnServer();
+            if (clanEntity == Entity.Null)
             {
-                enable = false;
-            }
-        }
-        else
-        {
-            var foundOnlineMemberOnTerritory = false;
-            var members = Core.EntityManager.GetBuffer<ClanMemberStatus>(clanEntity);
-            var userBuffer = Core.EntityManager.GetBuffer<SyncToUserBuffer>(clanEntity);
-            for (var i = 0; i < members.Length; ++i)
-            {
-                if (!members[i].IsConnected) continue;
-
-                var character = userBuffer[i].UserEntity.Read<User>().LocalCharacter.GetEntityOnServer();
-                if (Core.TerritoryService.GetTerritoryId(character) == territoryId)
+                var character = user.LocalCharacter.GetEntityOnServer();
+                // No clan, so check only the owner
+                if (!user.IsConnected || Core.TerritoryService.GetTerritoryId(character) != territoryId)
                 {
-                    foundOnlineMemberOnTerritory = true;
-                    break;
+                    proxEnable = false;
+                }
+                else
+                {
+                    entitiesToCheckForProximity.Add(character);
                 }
             }
-
-            if (!foundOnlineMemberOnTerritory)
+            else
             {
-                enable = false;
+                var foundOnlineMemberOnTerritory = false;
+                var members = Core.EntityManager.GetBuffer<ClanMemberStatus>(clanEntity);
+                var userBuffer = Core.EntityManager.GetBuffer<SyncToUserBuffer>(clanEntity);
+                for (var i = 0; i < members.Length; ++i)
+                {
+                    if (!members[i].IsConnected) continue;
+
+                    var character = userBuffer[i].UserEntity.Read<User>().LocalCharacter.GetEntityOnServer();
+                    if (Core.TerritoryService.GetTerritoryId(character) == territoryId)
+                    {
+                        foundOnlineMemberOnTerritory = true;
+                        entitiesToCheckForProximity.Add(character);
+                    }
+                }
+
+                if (!foundOnlineMemberOnTerritory)
+                {
+                    proxEnable = false;
+                    entitiesToCheckForProximity.Clear();
+                }
             }
         }
 
         foreach (var brazier in GetAllBraziers(territoryId))
         {
             var nameableInteractable = brazier.Read<NameableInteractable>();
-            if (!nameableInteractable.Name.ToString().ToLower().Contains("solar")) continue;
+            var name = nameableInteractable.Name.ToString().ToLower();
+            if (name.Contains("solar"))
+            {
+                var burnContainer = brazier.Read<BurnContainer>();
+                burnContainer.Enabled = solarEnable;
+                brazier.Write(burnContainer);
+            }
+            else if (name.Contains("prox"))
+            {
+                const float proxDistance = 20f;
 
-            var burnContainer = brazier.Read<BurnContainer>();
-            burnContainer.Enabled = enable;
-            brazier.Write(burnContainer);
+                var shouldEnable = proxEnable;
+                if (shouldEnable)
+                {
+                    var brazierPosition = brazier.Read<Translation>().Value.xz;
+                    shouldEnable = false;
+                    foreach (var entity in entitiesToCheckForProximity)
+                    {
+                        var entityPosition = entity.Read<Translation>().Value.xz;
+                        if (Vector2.Distance(brazierPosition, entityPosition) <= proxDistance)
+                        {
+                            shouldEnable = true;
+                            break;
+                        }
+                    }
+                }
+
+                var burnContainer = brazier.Read<BurnContainer>();
+                burnContainer.Enabled = shouldEnable;
+                brazier.Write(burnContainer);
+            }
         }
     }
 }
