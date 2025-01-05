@@ -1,6 +1,7 @@
 using KindredLogistics;
 using KindredLogistics.Commands.Converters;
 using KindredLogistics.Services;
+using Steamworks;
 using VampireCommandFramework;
 
 namespace Logistics.Commands
@@ -106,18 +107,19 @@ namespace Logistics.Commands
             var settings = Core.PlayerSettings.GetSettings(SteamID);
             var globalSettings = Core.PlayerSettings.GetGlobalSettings();
             ctx.Reply("KindredLogistics Settings:\n" +
-                      $"SortStash{(globalSettings.SortStash ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.SortStash ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
-                      $"Pull (Global) : {(globalSettings.Pull ? "<color=green>Server Enabled</color>" : "<color=red>Server Disabled</color>")}\n" +
-                      $"CraftPull{(globalSettings.CraftPull ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.CraftPull ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
+                      $"SortStash: {(globalSettings.SortStash ? (settings.SortStash ? "<color=green>On</color>" : "<color=red>Off</color>") : ("<color=red>Server Off</color>"))}\n" +
+                      $"Pull (Global) : {(globalSettings.Pull ? "<color=green>Server On</color>" : "<color=red>Server Off</color>")}\n" +
+                      $"CraftPull: {(globalSettings.CraftPull ? (settings.CraftPull ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}\n" +
                       $"DontPullLast: {(settings.DontPullLast ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
-                      $"AutoStashMissions{(globalSettings.AutoStashMissions ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.AutoStashMissions ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
-                      $"Conveyor{(globalSettings.Conveyor ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Conveyor ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
-                      $"Salvage{(globalSettings.Salvage ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Salvage ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
-                      $"UnitSpawner{(globalSettings.UnitSpawner ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.UnitSpawner ? "<color=green>On</color>" : "<color=red>Off</color>")}\n" +
-                      $"Brazier{(globalSettings.Brazier ? "" : "(<color=red>Server Disabled</color>)")}: {(settings.Brazier ? "<color=green>On</color>" : "<color=red>Off</color>")}" + $" | Solar: {(globalSettings.Solar ? "<color=green>Server Enabled</color>" : "<color=red>Server Disabled</color>")}\n" +
+                      $"AutoStashMissions: {(globalSettings.AutoStashMissions ? (settings.AutoStashMissions ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}\n" +
+                      $"Conveyor: {(globalSettings.Conveyor ? (settings.Conveyor ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}\n" +
+                      $"Salvage: {(globalSettings.Salvage ? (settings.Salvage ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}\n" +
+                      $"UnitSpawner: {(globalSettings.UnitSpawner ? (settings.UnitSpawner ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}\n" +
+                      $"Brazier: {(globalSettings.Brazier ? (settings.Brazier ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}" + $" | Solar: {(globalSettings.Solar ? "<color=green>Server On</color>" : "<color=red>Server Off</color>")}\n" +
                       $"Silent (Pull: {(settings.SilentPull ? "<color=green>On</color>" : "<color=red>Off</color>")}" + $" | Stash: { (settings.SilentStash ? "<color=green>On</color>" : "<color=red>Off</color>")})"
                       );
-        }  
+        }
+
     }
 
     [CommandGroup(name: "logisticsglobal", "lg")]
