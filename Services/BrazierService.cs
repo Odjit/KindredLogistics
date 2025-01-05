@@ -1,11 +1,7 @@
 ﻿using Il2CppInterop.Runtime;
 using ProjectM;
 using ProjectM.Network;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
@@ -15,6 +11,7 @@ namespace KindredLogistics.Services;
 class BrazierService
 {
     EntityQuery brazierQuery;
+    Dictionary<int, HashSet<Entity>> modifiedBraziers = [];
 
     public BrazierService()
     {
@@ -23,6 +20,11 @@ class BrazierService
                               );
 
         Core.TerritoryService.RegisterTerritoryUpdateCallback(UpdateIfBraziersActiveOnTerritory);
+
+        for(var i = TerritoryService.MIN_TERRITORY_ID; i <= TerritoryService.MAX_TERRITORY_ID; i++)
+        {
+            modifiedBraziers.Add(i, []);
+        }
     }
 
     public IEnumerable<Entity> GetAllBraziers(int territoryId)
@@ -97,15 +99,28 @@ class BrazierService
             }
         }
 
-        foreach (var brazier in GetAllBraziers(territoryId))
+        var allBraziers = GetAllBraziers(territoryId);
+        var modified = modifiedBraziers[territoryId];
+        foreach (var brazier in allBraziers)
         {
             var nameableInteractable = brazier.Read<NameableInteractable>();
             var name = nameableInteractable.Name.ToString().ToLower();
             if (name.Contains("solar"))
             {
                 var burnContainer = brazier.Read<BurnContainer>();
-                burnContainer.Enabled = solarEnable;
-                brazier.Write(burnContainer);
+                if (burnContainer.Enabled != solarEnable)
+                {
+                    burnContainer.Enabled = solarEnable;
+                    brazier.Write(burnContainer);
+                }
+
+                if (modified.Contains(brazier))
+                {
+                    modified.Remove(brazier);
+                    var bonfireTime = brazier.Read<Bonfire>();
+                    bonfireTime.TimeToGetToFullStrength = 15;
+                    brazier.Write(bonfireTime);
+                }
             }
             else if (name.Contains("prox"))
             {
@@ -128,8 +143,29 @@ class BrazierService
                 }
 
                 var burnContainer = brazier.Read<BurnContainer>();
-                burnContainer.Enabled = shouldEnable;
-                brazier.Write(burnContainer);
+                if (burnContainer.Enabled != shouldEnable)
+                {
+                    burnContainer.Enabled = shouldEnable;
+                    brazier.Write(burnContainer);
+
+                    if (!modified.Contains(brazier))
+                    {
+                        var bonfireTime = brazier.Read<Bonfire>();
+                        bonfireTime.TimeToGetToFullStrength = 0.5f;
+                        brazier.Write(bonfireTime);
+                        modified.Add(brazier);
+                    }
+                }
+            }
+            else
+            {
+                if (modified.Contains(brazier))
+                {
+                    modified.Remove(brazier);
+                    var bonfireTime = brazier.Read<Bonfire>();
+                    bonfireTime.TimeToGetToFullStrength = 15;
+                    brazier.Write(bonfireTime);
+                }
             }
         }
     }

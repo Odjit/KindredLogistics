@@ -17,8 +17,8 @@ namespace KindredLogistics.Services
 
         readonly List<Action<int, Entity>> territoryUpdateCallbacks = [];
 
-        const int MIN_TERRITORY_ID = 0;
-        const int MAX_TERRITORY_ID = 138;
+        public const int MIN_TERRITORY_ID = 0;
+        public const int MAX_TERRITORY_ID = 138;
 
         EntityQuery castleHeartQuery;
         readonly Dictionary<int, Entity> territoryToCastleHeart = [];
