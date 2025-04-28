@@ -1,5 +1,5 @@
 ![](logo.png)
-# KindredLogistics for V Rising 1.0!
+# KindredLogistics for V Rising 1.1!
 KindredLogistics is a server modification for V Rising that adds expansive features like stashing, crafting, pulling, searching for items, conveyor system for chain crafting, and auto stashing of servant inventories.
 
 - It is entirely server side, and you can double tap R with your inventory open to stash, or double click the sort button to stash. (Legacy .stash is also available) Contained within a territory!
@@ -8,15 +8,15 @@ KindredLogistics is a server modification for V Rising that adds expansive featu
 - Auto Salvage: Place items in a chest and label it "salvage" to have it automatically send them to a devourer!
 - Unit Spawner Refills: Place items in a chest and label it "spawner" to have it automatically send them to a tomb, vermin nest or stygian spawner!
 - Brazier Refills: Place items in a chest and label it "brazier" to have it automatically send them to a brazier!
-- Solar Brazier: Label braziers "solar" or "prox" to control the behaviour of the individual brazier! 
-  - Solar: only on during the day
+- Named Brazier: Label braziers "night" or "prox" to control the behaviour of the individual brazier! 
+  - Night: on all of the time, including night. 
   - Prox: only on when an allied player is nearby during the day
 - Never lose where your stuff is again! Use .finditem to find where your items are stored!
 - Tired of running around from station to station to make something? No worries! Use the conveyor system to link chests and refining inventories for chain crafting!
 - Repair your gear without fetching materials yourself!
 
 This was a collaborative effort from Odjit (Dj) and Zfolmt [(Mitch)](https://www.patreon.com/join/4865914). Feel free to reach out to either of us if you have questions or need help with the mod!
-
+Updated for 1.1 as of 1.5.0
 
 [V Rising Modding Discord](https://vrisingmods.com/discord) | [How to Install Mods on BepInEx](https://wiki.vrisingmods.com/user/Mod_Install.html) | [How to Use Mods In-Game](https://wiki.vrisingmods.com/user/Using_Server_Mods.html)
 
@@ -55,13 +55,14 @@ Check out the details on the WIKI by clicking above!
 | Command                          | Description                                                                                   | Shortcut     |
 |----------------------------------|-----------------------------------------------------------------------------------------------|--------------|
 | .logisticsglobal sortstash       | Turns on or off the ability for players to use the sort button in their inventory.            | .lg ss       |
+| .logisticsglobal pull            | Turns on or off the ability for players to pull items from containers.                        | .lg p        |
 | .logisticsglobal craftpull       | Turns on or off the ability for players to pull items from chests for crafting.               | .lg cr       |
 | .logisticsglobal autostashmissions | Turns on or off the ability for servants to autostash into chests.                          | .lg asm      |
 | .logisticsglobal conveyor         | Turns on or off the ability for players to set up linked inventories for crafting materials. | .lg co       |
-| .logisticsglobal salvage         | Turns on or off the ability for players to set up auto salvaging from a labelled chest.       | .lg sal       |
-| .logisticsglobal unitspawner     | Turns on or off the ability for players to set up feeding unitspawners from a labelled chest.   | .lg us       |
-| .logisticsglobal brazier         | Turns on or off the ability for players to set up feeding braziers from a labelled chest.       | .lg bz       |
-| .logisticsglobal solar           | Turns on or off the ability for players to name braziers solar/prox to control behaviour.       | .lg sol       |
+| .logisticsglobal salvage         | Turns on or off the ability for players to set up auto salvaging from a labelled chest.       | .lg sal      |
+| .logisticsglobal unitspawner     | Turns on or off the ability for players to set up feeding unitspawners from a labelled chest. | .lg us       |
+| .logisticsglobal brazier         | Turns on or off the ability for players to set up feeding braziers from a labelled chest.     | .lg bz       |
+| .logisticsglobal named           | Turns on or off the ability for players to name braziers night/prox to control behaviour.     | .lg sol      |
 | .logisticsglobal settings         | Shows the enabled/disabled status of the logistics systems.                                  | .lg s        |
 
 

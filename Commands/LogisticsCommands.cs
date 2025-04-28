@@ -115,7 +115,7 @@ namespace Logistics.Commands
                       $"Conveyor: {(globalSettings.Conveyor ? (settings.Conveyor ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}\n" +
                       $"Salvage: {(globalSettings.Salvage ? (settings.Salvage ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}\n" +
                       $"UnitSpawner: {(globalSettings.UnitSpawner ? (settings.UnitSpawner ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}\n" +
-                      $"Brazier: {(globalSettings.Brazier ? (settings.Brazier ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}" + $" | Solar: {(globalSettings.Solar ? "<color=green>Server On</color>" : "<color=red>Server Off</color>")}\n" +
+                      $"Brazier: {(globalSettings.Brazier ? (settings.Brazier ? "<color=green>On</color>" : "<color=red>Off</color>") : "<color=red>Server Off</color>")}" + $" | Named: {(globalSettings.Named ? "<color=green>Server On</color>" : "<color=red>Server Off</color>")}\n" +
                       $"Silent (Pull: {(settings.SilentPull ? "<color=green>On</color>" : "<color=red>Off</color>")}" + $" | Stash: { (settings.SilentStash ? "<color=green>On</color>" : "<color=red>Off</color>")})"
                       );
         }
@@ -186,7 +186,7 @@ namespace Logistics.Commands
         public static void ToggleSolar(ChatCommandContext ctx)
         {
             var solar = Core.PlayerSettings.ToggleSolar();
-            ctx.Reply($"Global Solar is {(solar ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+            ctx.Reply($"Global Named is {(solar ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
         [Command(name: "settings", shortHand: "s", usage: ".lg s", description: "Displays current settings.", adminOnly: true)]
@@ -202,7 +202,7 @@ namespace Logistics.Commands
                       $"Salvage: {(settings.Salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"UnitSpawner: {(settings.UnitSpawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
                       $"Brazier: {(settings.Brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}\n" +
-                      $"Solar: {(settings.Solar ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
+                      $"Named: {(settings.Named ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}"
                       );
         }
     }
