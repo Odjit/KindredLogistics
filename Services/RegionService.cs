@@ -24,13 +24,11 @@ namespace KindredLogistics.Services
 
         public RegionService()
         {
-            EntityQueryDesc queryDesc = new()
-            {
-                All = new ComponentType[] { new(Il2CppType.Of<WorldRegionPolygon>(), ComponentType.AccessMode.ReadWrite) },
-                Options = EntityQueryOptions.Default
-            };
+            var entityQueryBuilder = new EntityQueryBuilder(Allocator.Temp)
+                .AddAll(new(Il2CppType.Of<WorldRegionPolygon>(), ComponentType.AccessMode.ReadWrite));
 
-            var query = Core.EntityManager.CreateEntityQuery(queryDesc);
+            var query = Core.EntityManager.CreateEntityQuery(ref entityQueryBuilder);
+            entityQueryBuilder.Dispose();
             foreach (var worldRegionPolygonEntity in query.ToEntityArray(Allocator.Temp))
             {
                 var wrp = worldRegionPolygonEntity.Read<WorldRegionPolygon>();

@@ -102,7 +102,7 @@ public class CraftingPatch
     {
         public static void Prefix(RepairItemSystem __instance)
         {
-            NativeArray<Entity> entities = __instance.__query_1831453052_0.ToEntityArray(Allocator.Temp);
+            NativeArray<Entity> entities = __instance.__query_1831453069_0.ToEntityArray(Allocator.Temp);
             try
             {
                 foreach (Entity entity in entities)
@@ -128,7 +128,7 @@ public class CraftingPatch
             {
                 entities.Dispose();
             }
-            entities = __instance.__query_1831453052_1.ToEntityArray(Allocator.Temp);
+            entities = __instance.__query_1831453069_1.ToEntityArray(Allocator.Temp);
             try
             {
                 foreach (Entity entity in entities)

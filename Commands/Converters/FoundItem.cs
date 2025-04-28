@@ -135,7 +135,7 @@ class FoundItemConverter : CommandArgumentConverter<FoundItem>
 
     public static void LoadItemNames()
     {
-        foreach (var (prefab, name) in Core.PrefabCollectionSystem.PrefabGuidToNameDictionary)
+        foreach (var (name, prefab) in Core.PrefabCollectionSystem._SpawnableNameToPrefabGuidDictionary)
         {
             if(skipItems.Contains(prefab)) continue;
             if (name.StartsWith("Item_") && !name.EndsWith("_Base") && !name.EndsWith("_Trader_Template") && !name.EndsWith("_Debug"))

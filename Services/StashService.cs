@@ -39,11 +39,12 @@ namespace KindredLogistics.Services
 
         public StashService()
         {
-            stashQuery = Core.EntityManager.CreateEntityQuery(new EntityQueryDesc
-            {
-                All = StashQuery,
-                Options = EntityQueryOptions.IncludeDisabledEntities
-            });
+            var entityQueryBuilder = new EntityQueryBuilder(Allocator.Temp)
+                .WithOptions(EntityQueryOptions.IncludeDisabledEntities);
+            foreach (var entry in StashQuery)
+                entityQueryBuilder.AddAll(entry);
+            stashQuery = Core.EntityManager.CreateEntityQuery(ref entityQueryBuilder);
+            entityQueryBuilder.Dispose();
             receiverRegex = new Regex(Const.RECEIVER_REGEX, RegexOptions.Compiled);
             senderRegex = new Regex(Const.SENDER_REGEX, RegexOptions.Compiled);
         }
@@ -162,14 +163,40 @@ namespace KindredLogistics.Services
         {
             try
             {
+
                 var userEntity = charEntity.Read<PlayerCharacter>().UserEntity;
                 var user = userEntity.Read<User>();
+
+                var downed = new PrefabGUID(-1992158531);
+                if (BuffUtility.TryGetBuff(Core.EntityManager, charEntity, downed, out var buff))
+                {
+                    Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash while downed!");
+                    return;
+                }
+
+                var health = charEntity.Read<Health>();
+                if (health.Value <= 0 || health.IsDead)
+                {
+                    Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash when dead!");
+                    return;
+                }
 
                 var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
                 if (territoryIndex == -1)
                 {
-                    ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash outside territories!");
+                    Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash outside territories!");
                     return;
+                }
+
+                var castleHeartEntity = Core.TerritoryService.GetCastleHeart(territoryIndex);
+                if (castleHeartEntity != Entity.Null)
+                {
+                    var castleHeart = castleHeartEntity.Read<CastleHeart>();
+                    if (castleHeart.ActiveEvent >= CastleHeartEvent.Attacked)
+                    {
+                        Utilities.SendSystemMessageToClient(Core.EntityManager, user, $"Unable to stash while castle is {castleHeart.ActiveEvent.ToString()}");
+                        return;
+                    }
                 }
 
                 var serverGameManager = Core.ServerGameManager;
@@ -179,7 +206,11 @@ namespace KindredLogistics.Services
                 {
                     try
                     {
-                        if (stash.Has<CastleWorkstation>()) continue;
+                        if (stash.Has<CastleWorkstation>() &&
+                            stash.Read<CastleWorkstation>().MatchingFloorType != CastleFloorTypes.Treasury)
+                        {
+                            continue;
+                        }
                         if (stash.Has<UnitSpawnerstation>()) continue;
                         if (stash.Has<Refinementstation>()) continue;
                         if (stash.Has<Bonfire>()) continue;
@@ -217,7 +248,7 @@ namespace KindredLogistics.Services
 
                 if (!foundStash)
                 {
-                    ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash as no available stashes found in your current territory!");
+                    Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Unable to stash as no available stashes found in your current territory!");
                     return;
                 }
 
@@ -333,25 +364,25 @@ namespace KindredLogistics.Services
 
                 if (amountStashed.Count > 0)
                 {
-                    ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Stashed items from your inventory to the current territory!");
+                    Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Stashed items from your inventory to the current territory!");
                 }
                 else
                 {
-                    ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "No items were able to stash from your inventory!");
+                    Utilities.SendSystemMessageToClient(Core.EntityManager, user, "No items were able to stash from your inventory!");
                 }
 
                 if (!Core.PlayerSettings.IsSilentStashEnabled(user.PlatformId))
                 {
                     foreach (var ((stash, item), amount) in amountStashed)
                     {
-                        ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
+                        Utilities.SendSystemMessageToClient(Core.EntityManager, user,
                                                $"Stashed <color=white>{amount}</color>x <color=green>{item.PrefabName()}</color> to <color=#FFC0CB>{stash.EntityName()}</color>");
                     }
 
                     foreach (var stashedItemType in transferredItems)
                     {
                         if (amountUnstashed.TryGetValue(stashedItemType, out var amount))
-                            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
+                            Utilities.SendSystemMessageToClient(Core.EntityManager, user,
                                                                $"Unable to stash <color=white>{amount}</color>x <color=green>{stashedItemType.PrefabName()}</color> due to insufficient space in stashes!");
                     }
                 }
@@ -373,11 +404,11 @@ namespace KindredLogistics.Services
             var territoryIndex = Core.TerritoryService.GetTerritoryId(charEntity);
             if (territoryIndex == -1)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to search for items outside territories!");
+                Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Unable to search for items outside territories!");
                 return;
             }
 
-            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Find Item Report\n--------------------------------");
+            Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Find Item Report\n--------------------------------");
             var serverGameManager = Core.ServerGameManager;
             var foundStash = false;
             var totalFound = 0;
@@ -399,7 +430,7 @@ namespace KindredLogistics.Services
                     if (amountFound > 0)
                     {
                         totalFound += amountFound;
-                        ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user,
+                        Utilities.SendSystemMessageToClient(Core.EntityManager, user,
                                                        $"<color=white>{amountFound}</color>x <color=green>{item.PrefabName()}</color> found in <color=#FFC0CB>{stash.EntityName()}</color>");
                         AddSpotlight(stash, userEntity);
                     }
@@ -408,11 +439,11 @@ namespace KindredLogistics.Services
 
             if (!foundStash)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "No available stashes found in your current territory!");
+                Utilities.SendSystemMessageToClient(Core.EntityManager, user, "No available stashes found in your current territory!");
                 return;
             }
 
-            ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, $"Total <color=green>{itemName}</color> found: <color=white>{totalFound}</color>");
+            Utilities.SendSystemMessageToClient(Core.EntityManager, user, $"Total <color=green>{itemName}</color> found: <color=white>{totalFound}</color>");
         }
 
         void ClearSpotlights(Entity userEntity)

@@ -11,9 +11,10 @@ class SalvageService
 
     public SalvageService()
     {
-        salvageStationQuery = Core.EntityManager.CreateEntityQuery(
-                                ComponentType.ReadOnly(Il2CppType.Of<Salvagestation>())
-                              );
+        var entityQueryBuilder = new EntityQueryBuilder(Allocator.Temp)
+            .AddAll(ComponentType.ReadOnly(Il2CppType.Of<Salvagestation>()));
+        salvageStationQuery = Core.EntityManager.CreateEntityQuery(ref entityQueryBuilder);
+        entityQueryBuilder.Dispose();
     }
 
     public IEnumerable<Entity> GetAllSalvageStations(int territoryId)

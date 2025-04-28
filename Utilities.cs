@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using Unity.Entities;
 
 namespace KindredLogistics
@@ -226,26 +227,14 @@ namespace KindredLogistics
         {
             AddItemSettings addItemSettings = default;
             addItemSettings.EntityManager = Core.EntityManager;
-            unsafe
-            {
-                // Pin the buffer object to prevent the GC from moving it while we access it via pointers
-                GCHandle handle = GCHandle.Alloc(Core.ServerGameManager.ItemLookupMap, GCHandleType.Pinned);
-                try
-                {
-                    // Obtain the actual address of the buffer
-                    IntPtr address = handle.AddrOfPinnedObject();
-
-                    // Assuming the buckets pointer is the first field in the buffer struct
-                    // You may need to adjust the offset depending on the actual memory layout
-                    addItemSettings.ItemDataMap = Marshal.ReadIntPtr(address);
-                }
-                finally
-                {
-                    if (handle.IsAllocated)
-                        handle.Free();
-                }
-            }
+            addItemSettings.ItemDataMap = Core.ServerGameManager.ItemLookupMap;
             return addItemSettings;
+        }
+
+        public static void SendSystemMessageToClient(EntityManager entityManager, User user, string message)
+        {
+            var msg = new FixedString512Bytes(message);
+            ServerChatUtils.SendSystemMessageToClient(entityManager, user, ref msg);
         }
     }
 }

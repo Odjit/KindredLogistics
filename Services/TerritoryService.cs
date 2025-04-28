@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Entities.UniversalDelegates;
 
 namespace KindredLogistics.Services
 {
@@ -26,13 +27,11 @@ namespace KindredLogistics.Services
         public TerritoryService()
         {
             // Load Territories
-            EntityQueryDesc queryDesc = new()
-            {
-                All = new ComponentType[] { new(Il2CppType.Of<CastleTerritory>(), ComponentType.AccessMode.ReadWrite) },
-                Options = EntityQueryOptions.Default
-            };
+            var entityQueryBuilder = new EntityQueryBuilder(Allocator.Temp);
+            entityQueryBuilder.AddAll(new(Il2CppType.Of<CastleTerritory>(), ComponentType.AccessMode.ReadWrite));
 
-            var query = Core.EntityManager.CreateEntityQuery(queryDesc);
+            var query = Core.EntityManager.CreateEntityQuery(ref entityQueryBuilder);
+            entityQueryBuilder.Dispose();
 
             foreach (var territoryEntity in query.ToEntityArray(Allocator.Temp))
             {
@@ -46,13 +45,11 @@ namespace KindredLogistics.Services
                 territoriesInRegion.Add(territoryEntity);
             }
 
-            queryDesc = new EntityQueryDesc
-            {
-                All = new ComponentType[] { new(Il2CppType.Of<CastleHeart>(), ComponentType.AccessMode.ReadOnly) },
-                Options = EntityQueryOptions.Default
-            };
+            entityQueryBuilder = new EntityQueryBuilder(Allocator.Temp)
+                .AddAll(new(Il2CppType.Of<CastleHeart>(), ComponentType.AccessMode.ReadOnly));
 
-            castleHeartQuery = Core.EntityManager.CreateEntityQuery(queryDesc);
+            castleHeartQuery = Core.EntityManager.CreateEntityQuery(ref entityQueryBuilder);
+            entityQueryBuilder.Dispose();
 
             Core.StartCoroutine(UpdateLoop());
         }
@@ -109,6 +106,17 @@ namespace KindredLogistics.Services
                     }
                 }
             }
+        }
+
+        public Entity GetCastleHeart(int territoryId)
+        {
+            if (!territoryToCastleHeart.TryGetValue(territoryId, out var castleHeartEntity))
+                return Entity.Null;
+
+            if (!Core.EntityManager.Exists(castleHeartEntity))
+                return Entity.Null;
+
+            return castleHeartEntity;
         }
 
         public void FlushTerritoryCache()

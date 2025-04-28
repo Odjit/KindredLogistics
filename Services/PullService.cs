@@ -15,14 +15,14 @@ namespace KindredLogistics.Services
         {
             var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();
             if (Core.PlayerSettings.IsPullEnabled())
-            { 
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Pulling is globally disabled.");
+            {
+                Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Pulling is globally disabled.");
                 return;
             }
 
             if(!Core.GameDataSystem.ItemHashLookupMap.TryGetValue(item, out var itemData))
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Invalid item specified.");
+                Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Invalid item specified.");
                 return;
             }
 
@@ -32,7 +32,7 @@ namespace KindredLogistics.Services
            
             if (territoryIndex == -1)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to pull outside territories!");
+                Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Unable to pull outside territories!");
                 return;
             }
             if (!InventoryUtilities.TryGetInventoryEntity(entityManager, character, out Entity inventory))
@@ -43,7 +43,7 @@ namespace KindredLogistics.Services
             var batform = new PrefabGUID(1205505492);
             if (BuffUtility.TryGetBuff(Core.EntityManager, character, batform , out var _))
             {
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, "Cannot pull items while in batform.");
+                Utilities.SendSystemMessageToClient(entityManager, user, "Cannot pull items while in batform.");
                 return;
             }
 
@@ -97,7 +97,7 @@ namespace KindredLogistics.Services
                         continue;
                     }
                     if (!silentPull)
-                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
+                        Utilities.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{item.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                     quantityRemaining -= transferAmount;
                     if (quantityRemaining <= 0 || inventoryFull)
                         break;
@@ -105,14 +105,14 @@ namespace KindredLogistics.Services
             }
 
             if (!foundStash)
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to pull as no available stashes found in your current territory!");
+                Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Unable to pull as no available stashes found in your current territory!");
             else if (quantityRemaining <= 0)
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Pulled {quantity}x {item.PrefabName()} from containers.");
+                Utilities.SendSystemMessageToClient(entityManager, user, $"Pulled {quantity}x {item.PrefabName()} from containers.");
             else
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Was able to only pull {quantity - quantityRemaining}x out of desired {quantity}x {item.PrefabName()} from containers.");
+                Utilities.SendSystemMessageToClient(entityManager, user, $"Was able to only pull {quantity - quantityRemaining}x out of desired {quantity}x {item.PrefabName()} from containers.");
 
             if (inventoryFull)
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, "Inventory is full, unable to pull more items.");
+                Utilities.SendSystemMessageToClient(entityManager, user, "Inventory is full, unable to pull more items.");
 
         }
 
@@ -182,9 +182,9 @@ namespace KindredLogistics.Services
             }
             if (!fetchedMaterials)
             {
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find any materials for crafting additional <color=yellow>{recipeName}</color>!");
+                Utilities.SendSystemMessageToClient(entityManager, user, $"Couldn't find any materials for crafting additional <color=yellow>{recipeName}</color>!");
             }
-            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Have enough materials for crafting <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
+            Utilities.SendSystemMessageToClient(entityManager, user, $"Have enough materials for crafting <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
         }
 
         public static void HandleRepairPull(Entity character, PrefabGUID recipe, float repairNeeded)
@@ -194,7 +194,7 @@ namespace KindredLogistics.Services
 
             if (Core.PlayerSettings.IsPullEnabled())
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Pulling is globally disabled.");
+                Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Pulling is globally disabled.");
                 return;
             }
 
@@ -202,7 +202,7 @@ namespace KindredLogistics.Services
 
             if (territoryIndex == -1)
             {
-                ServerChatUtils.SendSystemMessageToClient(Core.EntityManager, user, "Unable to pull outside territories!");
+                Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Unable to pull outside territories!");
                 return;
             }
 
@@ -219,7 +219,7 @@ namespace KindredLogistics.Services
             var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
             if (!recipeEntity.Has<ItemRepairBuffer>())
             {
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, "Invalid recipe specified.");
+                Utilities.SendSystemMessageToClient(entityManager, user, "Invalid recipe specified.");
                 return;
             }
             var requirements = recipeEntity.ReadBuffer<ItemRepairBuffer>();
@@ -305,9 +305,9 @@ namespace KindredLogistics.Services
             }
             if (!fetchedMaterials)
             {
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find any materials for forging additional <color=yellow>{recipeName}</color>!");
+                Utilities.SendSystemMessageToClient(entityManager, user, $"Couldn't find any materials for forging additional <color=yellow>{recipeName}</color>!");
             }
-            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Have enough materials for forging <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
+            Utilities.SendSystemMessageToClient(entityManager, user, $"Have enough materials for forging <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
         }
 
         public static void HandleForgeUpgradePull(Entity character, Entity workstation, Entity item)
@@ -354,9 +354,9 @@ namespace KindredLogistics.Services
 
             if (!fetchedMaterials)
             {
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find any materials for upgrading additional <color=yellow>{recipeName}</color>!");
+                Utilities.SendSystemMessageToClient(entityManager, user, $"Couldn't find any materials for upgrading additional <color=yellow>{recipeName}</color>!");
             }
-            ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Have enough materials for upgrading <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
+            Utilities.SendSystemMessageToClient(entityManager, user, $"Have enough materials for upgrading <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
         }
 
         static void RetrieveRequirement(Entity character, Entity workstation, User user, EntityManager entityManager, ref ServerGameManager serverGameManager,
@@ -374,7 +374,7 @@ namespace KindredLogistics.Services
             {
                 fetchedMaterials = true;
                 if (!silentPull)
-                    ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Fetching materials for {fetchMessage} <color=yellow>{recipeName}</color>...");
+                    Utilities.SendSystemMessageToClient(entityManager, user, $"Fetching materials for {fetchMessage} <color=yellow>{recipeName}</color>...");
             }
 
             requiredAmount -= currentAmount;
@@ -465,7 +465,7 @@ namespace KindredLogistics.Services
                         continue;
                     
                     if (!silentPull)
-                        ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{requiredItem.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
+                        Utilities.SendSystemMessageToClient(entityManager, user, $"<color=white>{transferAmount}</color>x <color=green>{requiredItem.PrefabName()}</color> fetched from <color=#FFC0CB>{stash.EntityName()}</color>");
                     requiredAmount -= transferAmount;
                     if (requiredAmount <= 0)
                         break;
@@ -475,7 +475,7 @@ namespace KindredLogistics.Services
             if (requiredAmount > 0)
             {
                 fetchedForAnother = false;
-                ServerChatUtils.SendSystemMessageToClient(entityManager, user, $"Couldn't find <color=white>{requiredAmount}</color>x <color=green>{requiredItem.PrefabName()}</color>");
+                Utilities.SendSystemMessageToClient(entityManager, user, $"Couldn't find <color=white>{requiredAmount}</color>x <color=green>{requiredItem.PrefabName()}</color>");
             }
         }
     }
