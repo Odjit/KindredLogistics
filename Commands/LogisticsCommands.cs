@@ -182,7 +182,7 @@ namespace Logistics.Commands
             ctx.Reply($"Global Brazier is {(brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
-        [Command(name: "solar", shortHand:"sol", usage: ".lg sol", description: "Toggles the ability allow solar/proximity controlled braziers.", adminOnly: true)]
+        [Command(name: "named", shortHand:"nam", usage: ".lg nam", description: "Toggles the ability allow night/proximity controlled braziers.", adminOnly: true)]
         public static void ToggleSolar(ChatCommandContext ctx)
         {
             var solar = Core.PlayerSettings.ToggleSolar();
