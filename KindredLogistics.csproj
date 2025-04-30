@@ -3,7 +3,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>KindredLogistics</AssemblyName>
     <Description>Inventory management mod. Stashing, craftpulling, finding chests, etc</Description>
-    <Version>1.5.0</Version>
+    <Version>1.5.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RootNamespace>KindredLogistics</RootNamespace>
