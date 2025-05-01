@@ -8,9 +8,8 @@ KindredLogistics is a server modification for V Rising that adds expansive featu
 - Auto Salvage: Place items in a chest and label it "salvage" to have it automatically send them to a devourer!
 - Unit Spawner Refills: Place items in a chest and label it "spawner" to have it automatically send them to a tomb, vermin nest or stygian spawner!
 - Brazier Refills: Place items in a chest and label it "brazier" to have it automatically send them to a brazier!
-- Named Brazier: Label braziers "night" or "prox" to control the behaviour of the individual brazier! 
-  - Night: on all of the time, including night. 
-  - Prox: only on when an allied player is nearby during the day
+  - Night: on all of the time, including night for decorative purposes. 
+  - Prox: high efficiency! Only on when an allied player is nearby during the day
 - Never lose where your stuff is again! Use .finditem to find where your items are stored!
 - Tired of running around from station to station to make something? No worries! Use the conveyor system to link chests and refining inventories for chain crafting!
 - Repair your gear without fetching materials yourself!
@@ -19,6 +18,7 @@ This was a collaborative effort from Odjit (Dj) and Zfolmt [(Mitch)](https://www
 Updated for 1.1 as of 1.5.0
 
 [V Rising Modding Discord](https://vrisingmods.com/discord) | [How to Install Mods on BepInEx](https://wiki.vrisingmods.com/user/Mod_Install.html) | [How to Use Mods In-Game](https://wiki.vrisingmods.com/user/Using_Server_Mods.html)
+   - **Note:** Until BepInEx/VCF is updated for 1.1, please do not use the thunderstore versions. Get the correct testing version here: https://wiki.vrisingmods.com/user/game_update.html.
 
 
 [![logwouldyou](https://github.com/user-attachments/assets/4412fd55-cf6d-488b-9e40-77fba9f83afa)](https://github.com/Odjit/KindredLogistics/wiki)

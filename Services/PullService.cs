@@ -192,6 +192,35 @@ namespace KindredLogistics.Services
             var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();
             var entityManager = Core.EntityManager;
 
+            // check if the user has the mats in their inventory already
+            var desiredRecipeMultiple = 1;
+            var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
+            if (!recipeEntity.Has<ItemRepairBuffer>())
+            {
+                Utilities.SendSystemMessageToClient(entityManager, user, "Invalid recipe specified.");
+                return;
+            }
+
+            if (!InventoryUtilities.TryGetInventoryEntity(entityManager, character, out Entity inventory))
+            {
+                Core.Log.LogWarning($"No inventory found for character {character}.");
+                return;
+            }
+
+            var missingRequirement = false;
+            var serverGameManager = Core.ServerGameManager;
+            var requirements = recipeEntity.ReadBuffer<ItemRepairBuffer>();
+            foreach (var requirement in requirements)
+            {
+                if (!HasRequirement(character, Entity.Null, user, entityManager, ref serverGameManager, recipeEntity.Read<PrefabGUID>().LookupName(), inventory, Entity.Null, requirement.Guid, requirement.Stacks, desiredRecipeMultiple, 1))
+                {
+                    missingRequirement = true;
+                    break;
+                }
+            }
+            
+            if (!missingRequirement) return;
+
             if (Core.PlayerSettings.IsPullEnabled())
             {
                 Utilities.SendSystemMessageToClient(Core.EntityManager, user, "Pulling is globally disabled.");
@@ -206,24 +235,9 @@ namespace KindredLogistics.Services
                 return;
             }
 
-            if (!InventoryUtilities.TryGetInventoryEntity(entityManager, character, out Entity inventory))
-            {
-                Core.Log.LogWarning($"No inventory found for character {character}.");
-                return;
-            }
-
-            var serverGameManager = Core.ServerGameManager;
            
 
             // Determine the multiple of the recipe we currently have then we will try to fetch up to one more recipe's worth of materials
-            var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
-            if (!recipeEntity.Has<ItemRepairBuffer>())
-            {
-                Utilities.SendSystemMessageToClient(entityManager, user, "Invalid recipe specified.");
-                return;
-            }
-            var requirements = recipeEntity.ReadBuffer<ItemRepairBuffer>();
-
             var recipeName = recipeEntity.Read<PrefabGUID>().LookupName();
 
             var recipeOutputBuffer = recipeEntity.ReadBuffer<RecipeOutputBuffer>();
@@ -235,7 +249,6 @@ namespace KindredLogistics.Services
 
             var fetchedForAnother = true;
             var fetchedMaterials = false;
-            var desiredRecipeMultiple = 1;
             var dontPullLast = Core.PlayerSettings.IsDontPullLastEnabled(user.PlatformId);
             var silentPull = Core.PlayerSettings.IsSilentPullEnabled(user.PlatformId);
 
@@ -243,7 +256,7 @@ namespace KindredLogistics.Services
             {
                 int repairAmount = (int)Math.Ceiling(requirement.Stacks * (1 - repairNeeded));
                 RetrieveRequirement(character, Entity.Null, user, entityManager, ref serverGameManager, recipeName, dontPullLast, silentPull, inventory,
-                    inventory, ref fetchedForAnother, ref fetchedMaterials, requirement.Guid, repairAmount, desiredRecipeMultiple,
+                    Entity.Null, ref fetchedForAnother, ref fetchedMaterials, requirement.Guid, repairAmount, desiredRecipeMultiple,
                     1, "repairing");
             }
         }
@@ -358,6 +371,19 @@ namespace KindredLogistics.Services
             }
             Utilities.SendSystemMessageToClient(entityManager, user, $"Have enough materials for upgrading <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
         }
+
+
+
+        static bool HasRequirement(Entity character, Entity workstation, User user, EntityManager entityManager, ref ServerGameManager serverGameManager,
+                                                string recipeName, Entity inventory, Entity workstationInventory, PrefabGUID requiredItem, int requiredAmount, int desiredRecipeMultiple, double recipeReduction)
+        {
+            var currentAmount = serverGameManager.GetInventoryItemCount(inventory, requiredItem);
+            if (!workstationInventory.Equals(Entity.Null))
+                currentAmount += serverGameManager.GetInventoryItemCount(workstationInventory, requiredItem);
+            requiredAmount = desiredRecipeMultiple * (int)Math.Round(requiredAmount * recipeReduction, MidpointRounding.ToPositiveInfinity);
+            return currentAmount >= requiredAmount;
+        }
+   
 
         static void RetrieveRequirement(Entity character, Entity workstation, User user, EntityManager entityManager, ref ServerGameManager serverGameManager,
                                                 string recipeName, bool dontPullLast, bool silentPull, Entity inventory, Entity workstationInventory, ref bool fetchedForAnother,
