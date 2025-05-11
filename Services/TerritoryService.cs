@@ -19,7 +19,9 @@ namespace KindredLogistics.Services
         readonly List<Action<int, Entity>> territoryUpdateCallbacks = [];
 
         public const int MIN_TERRITORY_ID = 0;
-        public const int MAX_TERRITORY_ID = 138;
+        private const int ID_MULTIPLER = 2;
+        // Castles that were moved have IDs greater than 138
+        public const int MAX_TERRITORY_ID = 138 * ID_MULTIPLER;
 
         EntityQuery castleHeartQuery;
         readonly Dictionary<int, Entity> territoryToCastleHeart = [];
@@ -61,7 +63,10 @@ namespace KindredLogistics.Services
 
         IEnumerator UpdateLoop()
         {
-            yield return null;
+            // Performs ID_MULTIPLIER iterations in a single pass.
+            if (i % ID_MULTIPLER == 0)
+                yield return null;
+			
             while (true)
             {
                 var castleHeartEntities = castleHeartQuery.ToEntityArray(Allocator.Temp);
