@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.UniversalDelegates;
 
 namespace KindredLogistics.Services
 {
@@ -19,7 +18,7 @@ namespace KindredLogistics.Services
         readonly List<Action<int, Entity>> territoryUpdateCallbacks = [];
 
         public const int MIN_TERRITORY_ID = 0;
-        public const int MAX_TERRITORY_ID = 138;
+        public const int MAX_TERRITORY_ID = 146;
 
         EntityQuery castleHeartQuery;
         readonly Dictionary<int, Entity> territoryToCastleHeart = [];
