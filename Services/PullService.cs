@@ -1,4 +1,4 @@
-﻿using ProjectM;
+using ProjectM;
 using ProjectM.Network;
 using ProjectM.Scripting;
 using ProjectM.Shared;
@@ -187,17 +187,23 @@ namespace KindredLogistics.Services
             Utilities.SendSystemMessageToClient(entityManager, user, $"Have enough materials for crafting <color=white>{(fetchedForAnother ? desiredRecipeMultiple : currentRecipeMultiple)}</color>x <color=yellow>{recipeName}</color>.");
         }
 
-        public static void HandleRepairPull(Entity character, PrefabGUID recipe, float repairNeeded)
+        public static void HandleRepairPull(Entity character, PrefabGUID recipe, float repairNeeded, PrefabGUID repairing)
         {
             var user = character.Read<PlayerCharacter>().UserEntity.Read<User>();
             var entityManager = Core.EntityManager;
+
+            if (recipe == PrefabGUID.Empty)
+            {
+                Utilities.SendSystemMessageToClient(entityManager, user, $"{repairing.PrefabName()} has no repair recipe.");
+                return;
+            }
 
             // check if the user has the mats in their inventory already
             var desiredRecipeMultiple = 1;
             var recipeEntity = Core.PrefabCollectionSystem._PrefabGuidToEntityMap[recipe];
             if (!recipeEntity.Has<ItemRepairBuffer>())
             {
-                Utilities.SendSystemMessageToClient(entityManager, user, "Invalid recipe specified.");
+                Utilities.SendSystemMessageToClient(entityManager, user, $"{repairing.PrefabName()} has an invalid repair recipe.");
                 return;
             }
 
@@ -212,7 +218,7 @@ namespace KindredLogistics.Services
             var requirements = recipeEntity.ReadBuffer<ItemRepairBuffer>();
             foreach (var requirement in requirements)
             {
-                if (!HasRequirement(character, Entity.Null, user, entityManager, ref serverGameManager, recipeEntity.Read<PrefabGUID>().LookupName(), inventory, Entity.Null, requirement.Guid, requirement.Stacks, desiredRecipeMultiple, 1))
+                if (!HasRequirement(character, Entity.Null, user, entityManager, ref serverGameManager, inventory, Entity.Null, requirement.Guid, requirement.Stacks, desiredRecipeMultiple, 1))
                 {
                     missingRequirement = true;
                     break;
@@ -375,7 +381,7 @@ namespace KindredLogistics.Services
 
 
         static bool HasRequirement(Entity character, Entity workstation, User user, EntityManager entityManager, ref ServerGameManager serverGameManager,
-                                                string recipeName, Entity inventory, Entity workstationInventory, PrefabGUID requiredItem, int requiredAmount, int desiredRecipeMultiple, double recipeReduction)
+                                   Entity inventory, Entity workstationInventory, PrefabGUID requiredItem, int requiredAmount, int desiredRecipeMultiple, double recipeReduction)
         {
             var currentAmount = serverGameManager.GetInventoryItemCount(inventory, requiredItem);
             if (!workstationInventory.Equals(Entity.Null))
@@ -386,9 +392,9 @@ namespace KindredLogistics.Services
    
 
         static void RetrieveRequirement(Entity character, Entity workstation, User user, EntityManager entityManager, ref ServerGameManager serverGameManager,
-                                                string recipeName, bool dontPullLast, bool silentPull, Entity inventory, Entity workstationInventory, ref bool fetchedForAnother,
-                                                ref bool fetchedMaterials, PrefabGUID requiredItem, int requiredAmount, int desiredRecipeMultiple, double recipeReduction,
-                                                string fetchMessage = "")
+                                        string recipeName, bool dontPullLast, bool silentPull, Entity inventory, Entity workstationInventory, ref bool fetchedForAnother,
+                                        ref bool fetchedMaterials, PrefabGUID requiredItem, int requiredAmount, int desiredRecipeMultiple, double recipeReduction,
+                                        string fetchMessage = "")
         {
             var currentAmount = serverGameManager.GetInventoryItemCount(inventory, requiredItem);
             if (!workstationInventory.Equals(Entity.Null))

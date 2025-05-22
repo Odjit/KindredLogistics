@@ -118,7 +118,7 @@ public class CraftingPatch
                             if (durability.Value < durability.MaxDurability)
                             {
                                 float repairNeeded = durability.Value/durability.MaxDurability;
-                                PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe, repairNeeded);
+                                PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe, repairNeeded, inventoryBuffer[slot].ItemType);
                             }
                         }
                     }     
@@ -133,17 +133,19 @@ public class CraftingPatch
             {
                 foreach (Entity entity in entities)
                 {
-                    RepairEquippedItemEvent repairItemEvent = entity.Read<RepairEquippedItemEvent>();
-                    EquipmentType equipmentSlot = repairItemEvent.EquipmentType;
-                    FromCharacter fromCharacter = entity.Read<FromCharacter>();
-                    Equipment equipment = fromCharacter.Character.Read<Equipment>();
+                    var repairItemEvent = entity.Read<RepairEquippedItemEvent>();
+                    var equipmentSlot = repairItemEvent.EquipmentType;
+                    var fromCharacter = entity.Read<FromCharacter>();
+                    var equipment = fromCharacter.Character.Read<Equipment>();
                     if (equipment.GetEquipmentEntity(equipmentSlot)._Entity.Has<Durability>())
                     {
-                        Durability durability = equipment.GetEquipmentEntity(equipmentSlot)._Entity.Read<Durability>();
+                        var item = equipment.GetEquipmentEntity(equipmentSlot).GetEntityOnServer();
+                        var durability = item.Read<Durability>();
                         if (durability.Value < durability.MaxDurability)
                         {
-                            float repairNeeded = durability.Value / durability.MaxDurability;
-                            PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe, repairNeeded);
+                            var repairNeeded = durability.Value / durability.MaxDurability;
+                            var itemPrefab = item.Read<PrefabGUID>();
+                            PullService.HandleRepairPull(fromCharacter.Character, durability.RepairRecipe, repairNeeded, itemPrefab);
                         }
                     }
                 }
