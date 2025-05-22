@@ -1,4 +1,4 @@
-﻿using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime;
 using KindredLogistics.Services;
 using ProjectM;
 using ProjectM.CastleBuilding;
@@ -141,6 +141,24 @@ namespace KindredLogistics
             return false;
         }
 
+        static void CheckIfInventoryEmpty(Entity inventory)
+        {
+            var invBuffer = inventory.ReadBuffer<InventoryBuffer>();
+            for (int i=0; i<invBuffer.Length; i++)
+            {
+                if (invBuffer[i].Amount != 0) return;
+            }
+
+            var inventoryOwner = inventory.Read<InventoryOwner>();
+            inventoryOwner.HasItems = false;
+            inventory.Write(inventoryOwner);
+
+            var connectionEntity = inventory.Read<InventoryConnection>().InventoryOwner;
+            var invOwnerOnConnection = connectionEntity.Read<InventoryOwner>();
+            invOwnerOnConnection.HasItems = false;
+            connectionEntity.Write(invOwnerOnConnection);
+        }
+
         public static bool TransferItemEntities(Entity outputInventory, Entity inputInventory, PrefabGUID itemPrefab, int transferAmount, ref int startInputSlot, out int amountTransferred)
         {
             var outputBuffer = outputInventory.ReadBuffer<InventoryBuffer>();
@@ -177,16 +195,21 @@ namespace KindredLogistics
                     break;
                 }
 
+
+
                 if (amountTransferred >= transferAmount)
                 {
+                    CheckIfInventoryEmpty(outputInventory);
                     return false;
                 }
 
                 if (inputBuffer.Length <= startInputSlot)
                 {
+                    CheckIfInventoryEmpty(outputInventory);
                     return true;
                 }
             }
+            CheckIfInventoryEmpty(outputInventory);
             return false;
         }
 
