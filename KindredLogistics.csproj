@@ -3,13 +3,13 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>KindredLogistics</AssemblyName>
     <Description>Inventory management mod. Stashing, craftpulling, finding chests, etc</Description>
-    <Version>1.5.7</Version>
+    <Version>1.5.8</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RootNamespace>KindredLogistics</RootNamespace>
-    <AssemblyVersion>1.5.7.0</AssemblyVersion>
-    <FileVersion>1.5.7.0</FileVersion>
-    <InformationalVersion>1.5.7+0.Branch.main.Sha.62bb8fcf39ee2ebe62410e48ec8f8fdc72e85b10</InformationalVersion>
+    <AssemblyVersion>1.5.8.0</AssemblyVersion>
+    <FileVersion>1.5.8.0</FileVersion>
+    <InformationalVersion>1.5.8+0.Branch.main.Sha.62bb8fcf39ee2ebe62410e48ec8f8fdc72e85b10</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Data\prefabNames.json" />
@@ -23,7 +23,7 @@
   </ItemGroup>
   <ItemGroup>
 	  <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
-	  <PackageReference Include="VRising.VampireCommandFramework" Version="0.9.*" />
+	  <PackageReference Include="VRising.VampireCommandFramework" Version="0.10.*" />
   </ItemGroup>
   <ItemGroup>
       <PackageReference Include="System.Text.Json" Version="6.0.11" />

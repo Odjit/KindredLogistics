@@ -2,6 +2,8 @@
 # KindredLogistics for V Rising 1.1!
 KindredLogistics is a server modification for V Rising that adds expansive features like stashing, crafting, pulling, searching for items, conveyor system for chain crafting, and auto stashing of servant inventories.
 
+Note: Due to the *vanilla* bug of the advanced furnace having a hidden recipe for bottles, I have added revealing it on them so you can turn it off. 
+
 - It is entirely server side, and you can double tap R with your inventory open to stash, or double click the sort button to stash. (Legacy .stash is also available) Contained within a territory!
 - You can pull items from your chests for crafting by right clicking the recipe in the crafting station!
 - Servants will autostash their inventories into chests or mission overflow chests (Label them "spoils").
@@ -18,7 +20,6 @@ This was a collaborative effort from Odjit (Dj) and Zfolmt [(Mitch)](https://www
 Updated for 1.1 as of 1.5.0
 
 [V Rising Modding Discord](https://vrisingmods.com/discord) | [How to Install Mods on BepInEx](https://wiki.vrisingmods.com/user/Mod_Install.html) | [How to Use Mods In-Game](https://wiki.vrisingmods.com/user/Using_Server_Mods.html)
-   - **Note:** Until BepInEx/VCF is updated for 1.1, please do not use the thunderstore versions. Get the correct testing version here: https://wiki.vrisingmods.com/user/game_update.html.
 
 
 [![logwouldyou](https://github.com/user-attachments/assets/4412fd55-cf6d-488b-9e40-77fba9f83afa)](https://github.com/Odjit/KindredLogistics/wiki)
