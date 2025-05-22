@@ -1,12 +1,16 @@
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
+using Il2CppInterop.Runtime;
 using KindredLogistics.Commands.Converters;
 using KindredLogistics.Services;
 using ProjectM;
+using ProjectM.CastleBuilding;
 using ProjectM.Physics;
 using ProjectM.Scripting;
+using Stunlock.Core;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -75,6 +79,8 @@ internal static class Core
 
         FoundItemConverter.LoadItemNames();
 
+        FixAdvanceFurnaces();
+
         Core.Log.LogInfo("KindredLogistics initialized");
 
         hasInitialized = true;
@@ -103,5 +109,39 @@ internal static class Core
         }
 
         monoBehaviour.StartCoroutine(routine.WrapToIl2Cpp());
+    }
+
+    static void FixAdvanceFurnaces()
+    {
+        var eqb = new EntityQueryBuilder(Allocator.Temp)
+            .AddAll(new(Il2CppType.Of<Refinementstation>(), ComponentType.AccessMode.ReadOnly))
+            .AddAll(new(Il2CppType.Of<PrefabGUID>(), ComponentType.AccessMode.ReadOnly))
+            .AddAll(new(Il2CppType.Of<RefinementstationRecipesBuffer>(), ComponentType.AccessMode.ReadWrite))
+            .WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab);
+
+        var eq = Core.EntityManager.CreateEntityQuery(ref eqb);
+        eqb.Dispose();
+        var entitites = eq.ToEntityArray(Allocator.Temp);
+        var replacementRecipe = new PrefabGUID(461575192);
+        foreach (var entity in entitites)
+        {
+            var prefabGuid = entity.Read<PrefabGUID>();
+            if (prefabGuid.GuidHash != -222851985) continue;
+
+            var recipes = Core.EntityManager.GetBuffer<RefinementstationRecipesBuffer>(entity);
+            for (var i=0; i<recipes.Length; ++i)
+            {
+                // Replacing hidden glass bottle with visible glass bottle recipes
+                var recipe = recipes[i];
+                if (recipe.RecipeGuid.GuidHash == 394757670)
+                {
+                    Core.Log.LogInfo($"Replacing recipe {recipe.RecipeGuid.LookupName()} on {entity.EntityName()} {entity.Index}:{entity.Version} with {replacementRecipe.LookupName()}");
+                    recipe.RecipeGuid = replacementRecipe;
+                    recipes[i] = recipe;
+                }
+            }
+        }
+        entitites.Dispose();
+        eq.Dispose();
     }
 }
