@@ -134,7 +134,7 @@ namespace KindredLogistics.Services
             {
                 var heart = entity.Read<CastleHeartConnection>().CastleHeartEntity.GetEntityOnServer();
 
-                if (heart != Entity.Null)
+                if (Core.EntityManager.Exists(heart) && heart != Entity.Null)
                 {
                     var castleHeart = heart.Read<CastleHeart>();
                     var castleTerritory = castleHeart.CastleTerritoryEntity;
