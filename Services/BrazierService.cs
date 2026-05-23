@@ -35,12 +35,78 @@ class BrazierService
         }
         brazierQuery.Dispose();
 
-        Core.TerritoryService.RegisterTerritoryUpdateCallback(UpdateIfBraziersActiveOnTerritory);
-
         for(var i = TerritoryService.MIN_TERRITORY_ID; i <= TerritoryService.MAX_TERRITORY_ID; i++)
         {
             modifiedBraziers.Add(i, []);
         }
+
+        // Proximity/day-night brazier control is the one feature that cannot be inventory-event
+        // driven (it depends on player position and the clock). It runs on a dedicated slow
+        // ticker scoped to only the territories that actually have braziers - NOT the logistics
+        // work queue and NOT the old 0..146 scan.
+        Core.StartCoroutine(BrazierProximityLoop());
+    }
+
+    const float PROXIMITY_TICK_SECONDS = 2.5f;
+
+    IEnumerator BrazierProximityLoop()
+    {
+        var wait = new WaitForSeconds(PROXIMITY_TICK_SECONDS);
+        while (true)
+        {
+            yield return wait;
+
+            if (!Core.HasInitialized) continue;
+            if (!Core.PlayerSettings.IsSolarEnabled(0)) continue;
+
+            foreach (var territoryId in GetBrazierTerritories())
+            {
+                var castleHeartEntity = Core.TerritoryService.GetCastleHeart(territoryId);
+                if (castleHeartEntity == Entity.Null) continue;
+
+                IEnumerator enumerator;
+                try
+                {
+                    enumerator = UpdateIfBraziersActiveOnTerritory(territoryId, castleHeartEntity);
+                }
+                catch (System.Exception e)
+                {
+                    Core.LogException(e);
+                    continue;
+                }
+
+                // UpdateIfBraziersActiveOnTerritory never yields mid-work; drain it synchronously.
+                var stillRunning = true;
+                while (stillRunning)
+                {
+                    try
+                    {
+                        stillRunning = enumerator.MoveNext();
+                    }
+                    catch (System.Exception e)
+                    {
+                        Core.LogException(e);
+                        stillRunning = false;
+                    }
+                }
+            }
+        }
+    }
+
+    List<int> GetBrazierTerritories()
+    {
+        var result = new List<int>();
+        foreach (var castleHeartEntity in new List<Entity>(braziersByHeart.Keys))
+        {
+            if (!Core.EntityManager.Exists(castleHeartEntity)) continue;
+            if (!castleHeartEntity.Has<CastleHeart>()) continue;
+
+            var territoryEntity = castleHeartEntity.Read<CastleHeart>().CastleTerritoryEntity;
+            if (!Core.EntityManager.Exists(territoryEntity) || !territoryEntity.Has<CastleTerritory>()) continue;
+
+            result.Add(territoryEntity.Read<CastleTerritory>().CastleTerritoryIndex);
+        }
+        return result;
     }
 
     internal void AddBrazier(Entity stationEntity)

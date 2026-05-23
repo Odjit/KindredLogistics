@@ -74,7 +74,7 @@ namespace KindredLogistics.Services
             int serverFps = SettingsManager.ServerHostSettings.ServerFps;
             timeBudget = (1f / serverFps) * 0.15f;
 
-            Core.StartCoroutine(UpdateLoop());
+            // The work loop now lives in WorkQueueService and is driven by events, not a poll.
         }
 
         public void RegisterTerritoryUpdateCallback(Func<int, Entity, IEnumerator> callback)
@@ -82,8 +82,13 @@ namespace KindredLogistics.Services
             territoryUpdateCallbacks.Add(callback);
         }
 
+        // Per-territory callbacks the WorkQueueService worker runs when draining a dirty territory.
+        internal IReadOnlyList<Func<int, Entity, IEnumerator>> UpdateCallbacks => territoryUpdateCallbacks;
+
+        internal bool IsTerritoryRebuilding(int territoryId) => territoriesRebuilding.Contains(territoryId);
+
         float startTime = 0;
-        void StartTimer()
+        internal void StartTimer()
         {
             startTime = Time.realtimeSinceStartup;
         }
@@ -91,62 +96,6 @@ namespace KindredLogistics.Services
         internal bool ShouldUpdateYield()
         {
             return Time.realtimeSinceStartup - startTime > timeBudget;
-        }
-
-        IEnumerator UpdateLoop()
-        {
-            yield return null;
-            while (true)
-            {
-                yield return null;
-                StartTimer();
-
-                for (int i = MIN_TERRITORY_ID; i <= MAX_TERRITORY_ID; i++)
-                {
-                    var castleHeartEntity = GetCastleHeart(i);
-                    if (castleHeartEntity == Entity.Null)
-                        continue;
-
-                    if (territoriesRebuilding.Contains(i)) continue;
-                    if (castleHeartEntity.Read<CastleRebuildPhaseState>().State != PhaseState.None) continue;
-
-                    foreach (var callback in territoryUpdateCallbacks)
-                    {
-                        IEnumerator enumerator = null;
-                        bool stillRunning = false;
-                        try
-                        {
-                            enumerator = callback(i, castleHeartEntity);
-                            stillRunning = enumerator.MoveNext();
-                        }
-                        catch (Exception e)
-                        {
-                            Core.LogException(e);
-                        }
-
-                        while (stillRunning)
-                        {
-                            yield return null;
-                            StartTimer();
-
-                            try
-                            {
-                                stillRunning = enumerator.MoveNext();
-                            }
-                            catch (Exception e)
-                            {
-                                Core.LogException(e);
-                            }
-                        }
-
-                        if (ShouldUpdateYield())
-                        {
-                            yield return null;
-                            StartTimer();
-                        }
-                    }
-                }
-            }
         }
 
         public Entity GetCastleHeart(int territoryId)

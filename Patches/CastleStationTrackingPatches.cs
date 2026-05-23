@@ -17,6 +17,9 @@ internal class CastleStationSpawnSystemPatch
             if (castleConnectionEntity.Has<Refinementstation>()) Core.RefinementStations.AddRefinementStation(castleConnectionEntity);
             if (castleConnectionEntity.Has<Salvagestation>()) Core.SalvageService.AddSalvageStation(castleConnectionEntity);
             if (castleConnectionEntity.Has<UnitSpawnerstation>()) Core.UnitSpawnerstationService.AddUnitSpawnerStation(castleConnectionEntity);
+
+            // A newly built/rebuilt station means its territory has work to (re)evaluate.
+            Core.WorkQueue?.EnqueueOwner(castleConnectionEntity);
         }
         entities.Dispose();
         return true;

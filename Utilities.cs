@@ -271,10 +271,15 @@ namespace KindredLogistics
 
         public static bool TransferItemEntities(Entity outputInventory, Entity inputInventory, PrefabGUID itemPrefab, int transferAmount, ref int startInputSlot, out int amountTransferred)
         {
+            // Entity-backed item moves below are raw buffer swaps that bypass
+            // InventoryUtilitiesServer.CreateInventoryChangedEvent, so no InventoryChangedEvent
+            // fires. Re-enqueue the destination's territory ourselves so logistics gets a
+            // follow-up pass after equipment/durability items are moved.
+            amountTransferred = 0;
+            try
+            {
             var outputBuffer = outputInventory.ReadBuffer<InventoryBuffer>();
             var inputBuffer = inputInventory.ReadBuffer<InventoryBuffer>();
-
-            amountTransferred = 0;
 
             for (int i = 0; i < outputBuffer.Length; i++)
             {
@@ -321,6 +326,12 @@ namespace KindredLogistics
             }
             CheckIfInventoryEmpty(outputInventory);
             return false;
+            }
+            finally
+            {
+                if (amountTransferred > 0 && inputInventory.Has<InventoryConnection>())
+                    Core.WorkQueue?.EnqueueOwner(inputInventory.Read<InventoryConnection>().InventoryOwner);
+            }
         }
 
         public static int TransferItems(ServerGameManager serverGameManager, Entity outputInventory, Entity inputInventory, PrefabGUID itemGuid, int transferAmount)

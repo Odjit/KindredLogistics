@@ -5,6 +5,7 @@ using KindredLogistics.Commands.Converters;
 using KindredLogistics.Services;
 using ProjectM;
 using ProjectM.CastleBuilding;
+using ProjectM.Network;
 using ProjectM.Physics;
 using ProjectM.Scripting;
 using Stunlock.Core;
@@ -46,6 +47,7 @@ internal static class Core
     public static TerritoryService TerritoryService { get; internal set; }
     public static UnitSpawnerstationService UnitSpawnerstationService { get; internal set; }
     public static BrazierService BrazierService { get; internal set; }
+    public static WorkQueueService WorkQueue { get; internal set; }
 
     public const int MAX_REPLY_LENGTH = 509;
 
@@ -57,6 +59,15 @@ internal static class Core
     public static void LogException(System.Exception e, [CallerMemberName] string caller = null)
     {
         Core.Log.LogError($"Failure in {caller}\nMessage: {e.Message} Inner:{e.InnerException?.Message}\n\nStack: {e.StackTrace}\nInner Stack: {e.InnerException?.StackTrace}");
+    }
+
+    public static bool TryGetEntityFromNetworkId(NetworkId networkId, out Entity entity)
+    {
+        entity = Entity.Null;
+        if (!hasInitialized) return false;
+
+        var networkIdSingleton = ServerScriptMapper.GetSingleton<NetworkIdSystem.Singleton>();
+        return networkIdSingleton._NetworkIdLookupMap.TryGetValue(networkId, out entity);
     }
 
     public static void Initialize()
@@ -79,6 +90,9 @@ internal static class Core
         // Now start services that actually do stuff
         ConveyorService = new();
 
+        // Created after the callbacks above are registered; drives them event-driven.
+        WorkQueue = new();
+
         FoundItemConverter.LoadItemNames();
 
         FixAdvanceFurnaces();
@@ -86,6 +100,9 @@ internal static class Core
         Core.Log.LogInfo("KindredLogistics initialized");
 
         hasInitialized = true;
+
+        // Bootstrap: process every existing castle once so pre-existing imbalances resolve.
+        WorkQueue.EnqueueAll();
     }
 
     static World GetWorld(string name)

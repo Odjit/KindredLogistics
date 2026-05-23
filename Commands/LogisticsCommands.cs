@@ -51,6 +51,7 @@ namespace Logistics.Commands
             var SteamID = ctx.Event.User.PlatformId;
 
             var conveyor = Core.PlayerSettings.ToggleConveyor(SteamID);
+            if (conveyor) Core.WorkQueue?.EnqueueAll();
             ctx.Reply($"Conveyor is {(conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
@@ -60,6 +61,7 @@ namespace Logistics.Commands
             var SteamID = ctx.Event.User.PlatformId;
 
             var salvage = Core.PlayerSettings.ToggleSalvage(SteamID);
+            if (salvage) Core.WorkQueue?.EnqueueAll();
             ctx.Reply($"Salvage is {(salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
@@ -69,6 +71,7 @@ namespace Logistics.Commands
             var SteamID = ctx.Event.User.PlatformId;
 
             var spawner = Core.PlayerSettings.ToggleUnitSpawner(SteamID);
+            if (spawner) Core.WorkQueue?.EnqueueAll();
             ctx.Reply($"Spawner is {(spawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
@@ -78,6 +81,7 @@ namespace Logistics.Commands
             var SteamID = ctx.Event.User.PlatformId;
 
             var brazier = Core.PlayerSettings.ToggleBrazier(SteamID);
+            if (brazier) Core.WorkQueue?.EnqueueAll();
             ctx.Reply($"Brazier is {(brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
@@ -97,6 +101,16 @@ namespace Logistics.Commands
 
             var silentStash = Core.PlayerSettings.ToggleSilentStash(SteamID);
             ctx.Reply($"SilentStash is {(silentStash ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
+        }
+
+        [Command(name: "verifyqueue", shortHand: "vq", usage: ".l vq", description: "Reports the logistics work queue depth and whether your territory is queued.", adminOnly: true)]
+        public static void VerifyQueue(ChatCommandContext ctx)
+        {
+            var territoryId = Core.TerritoryService.GetTerritoryId(ctx.Event.SenderCharacterEntity);
+            var depth = Core.WorkQueue.QueueDepth;
+            var queuedHere = territoryId >= 0 && Core.WorkQueue.IsQueued(territoryId);
+            ctx.Reply($"Work queue depth: {depth} | Your territory: {(territoryId < 0 ? "none" : territoryId.ToString())} | " +
+                      $"Queued: {(queuedHere ? "<color=green>yes</color>" : "<color=red>no</color>")}");
         }
 
         [Command(name: "settings", shortHand: "s", usage: ".l s", description: "Displays current settings.")]
@@ -158,6 +172,7 @@ namespace Logistics.Commands
         public static void ToggleConveyor(ChatCommandContext ctx)
         {
             var conveyor = Core.PlayerSettings.ToggleConveyor();
+            if (conveyor) Core.WorkQueue?.EnqueueAll();
             ctx.Reply($"Global Conveyor is {(conveyor ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
@@ -165,6 +180,7 @@ namespace Logistics.Commands
         public static void ToggleSalvage(ChatCommandContext ctx)
         {
             var salvage = Core.PlayerSettings.ToggleSalvage();
+            if (salvage) Core.WorkQueue?.EnqueueAll();
             ctx.Reply($"Global Salvage is {(salvage ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
@@ -172,6 +188,7 @@ namespace Logistics.Commands
         public static void ToggleUnitSpawner(ChatCommandContext ctx)
         {
             var spawner = Core.PlayerSettings.ToggleUnitSpawner();
+            if (spawner) Core.WorkQueue?.EnqueueAll();
             ctx.Reply($"Global Spawner is {(spawner ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
@@ -179,6 +196,7 @@ namespace Logistics.Commands
         public static void ToggleBrazier(ChatCommandContext ctx)
         {
             var brazier = Core.PlayerSettings.ToggleBrazier();
+            if (brazier) Core.WorkQueue?.EnqueueAll();
             ctx.Reply($"Global Brazier is {(brazier ? "<color=green>enabled</color>" : "<color=red>disabled</color>")}.");
         }
 
